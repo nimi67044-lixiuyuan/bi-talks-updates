@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "minimumUpdaterVersion": 1,
+  "patchId": "4.0.5-initial",
+  "baseVersions": [
+    "4.0.4"
+  ],
+  "targetVersion": "4.0.5",
+  "publishedAt": "2026-08-29T17:25:58.587Z",
+  "description": "Bi-talks 4.0.5 initial signed update channel",
+  "files": [
+    {
+      "path": "out/main/index.js",
+      "url": "files/out/main/index.js",
+      "sha256": "288f6af6d9c45d2ea662d7d7613efd79ed5f9ce42a3e643f19c3791a62e6a092",
+      "size": 294966
+    },
+    {
+      "path": "out/preload/index.cjs",
+      "url": "files/out/preload/index.cjs",
+      "sha256": "4a2bca08ccd0c90410378fcea7209960a4b1770aa6d37440caa8df42e486c18e",
+      "size": 3321
+    },
+    {
+      "path": "out/renderer/assets/index-CvN8dW22.js",
+      "url": "files/out/renderer/assets/index-CvN8dW22.js",
+      "sha256": "295b2fa2eb76ac94aa3d8b4a2e768d750b86da813a76fcb99ebcfb799f37d49d",
+      "size": 778303
+    },
+    {
+      "path": "out/renderer/assets/index-jMWQudkV.css",
+      "url": "files/out/renderer/assets/index-jMWQudkV.css",
+      "sha256": "afdd6c5be5a5b6f6f98020e854e50d7ad598da08d8fab09b20f56e3a5c413de7",
+      "size": 28754
+    },
+    {
+      "path": "out/renderer/index.html",
+      "url": "files/out/renderer/index.html",
+      "sha256": "58acd3798a51049a60aa108a31a59e41fed3a75e362f5dc0387c1b7c76da58de",
+      "size": 679
+    },
+    {
+      "path": "package.json",
+      "url": "files/package.json",
+      "sha256": "e752bd2328e93b09270691a4462e37f3fa2ff8c486f4a5718da7533b47bbb197",
+      "size": 3344
+    }
+  ],
+  "remove": [
+    "out/renderer/assets/index-BCNOif4Y.css",
+    "out/renderer/assets/index-XNqyWT11.js"
+  ]
+}
