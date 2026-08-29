@@ -4980,14 +4980,14 @@ class AppPatchManager {
       if (applied.has(payload.patchId)) {
         this.checkedPayload = void 0;
         this.checkedManifestUrl = void 0;
-        const message2 = "当前已安装最新在线补丁。";
+        const message2 = "暂无可用更新，当前已是最新版本！";
         this.event("up-to-date", message2, info);
         return { configured: true, currentVersion: this.options.currentVersion, available: false, ready: false, message: message2, patch: info };
       }
       if (!payload.baseVersions.includes(this.options.currentVersion)) {
         this.checkedPayload = void 0;
         this.checkedManifestUrl = void 0;
-        const message2 = "当前版本不在该补丁的适用范围内。";
+        const message2 = "暂无可用更新，当前已是最新版本！";
         this.event("up-to-date", message2, info);
         return { configured: true, currentVersion: this.options.currentVersion, available: false, ready: false, message: message2, patch: info };
       }
