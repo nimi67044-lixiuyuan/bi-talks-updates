@@ -1,4 +1,4 @@
-import { app, safeStorage, WebContentsView, shell, session, ipcMain, powerMonitor, BrowserWindow, nativeImage, Tray, Menu } from "electron";
+import { app, safeStorage, WebContentsView, shell, session, ipcMain, powerMonitor, Menu, BrowserWindow, nativeImage, Tray } from "electron";
 import { existsSync, promises, readFileSync, rmSync, createWriteStream, mkdirSync, writeFileSync, renameSync } from "node:fs";
 import { join, dirname, resolve, basename, isAbsolute, sep } from "node:path";
 import { deflateSync } from "node:zlib";
@@ -6065,6 +6065,7 @@ async function createWindow() {
   );
   mainWindowPresented = false;
   const windowIcon = appIconImage();
+  Menu.setApplicationMenu(null);
   mainWindow = new BrowserWindow({
     width: 1440,
     height: 900,
