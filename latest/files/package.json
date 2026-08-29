@@ -1,0 +1,23 @@
+{
+  "name": "bi-talks-windows-desktop-source-build",
+  "version": "4.0.6",
+  "author": "Bi-talks contributors",
+  "private": true,
+  "os": [
+    "win32"
+  ],
+  "description": "Windows 10/11 multi-account desktop messenger shell with fast message translation",
+  "main": "./out/main/index.js",
+  "type": "module",
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "allowScripts": {
+    "electron@43.4.1": true
+  }
+}

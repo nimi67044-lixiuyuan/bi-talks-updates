@@ -1,20 +1,40 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.5-no-update-message-20260829",
+  "patchId": "4.0.6-confirmed-auto-update-20260829",
   "baseVersions": [
     "4.0.5"
   ],
-  "targetVersion": "4.0.5",
-  "publishedAt": "2026-08-29T18:04:26.015Z",
-  "description": "Bi-talks 4.0.5 no-update status message",
+  "targetVersion": "4.0.6",
+  "publishedAt": "2026-08-29T18:55:38.551Z",
+  "description": "Bi-talks 4.0.6 update confirmation and automatic patch installation",
   "files": [
     {
       "path": "out/main/index.js",
       "url": "files/out/main/index.js",
       "sha256": "faf23e09e93cb50350719711cddb3099f205231e24f99eaeb7fa54f6811ad404",
       "size": 294978
+    },
+    {
+      "path": "out/renderer/assets/index-DXjyMHCs.js",
+      "url": "files/out/renderer/assets/index-DXjyMHCs.js",
+      "sha256": "20878247a4cd6755836f1921d96513fa3d6030a73391af77e9ad43e7b1d69ee0",
+      "size": 782467
+    },
+    {
+      "path": "out/renderer/index.html",
+      "url": "files/out/renderer/index.html",
+      "sha256": "8db46bb074530fa2e794caaa47e95ec3bf6dfa5ade5e0db44c0fa536f1be1b59",
+      "size": 679
+    },
+    {
+      "path": "package.json",
+      "url": "files/package.json",
+      "sha256": "eba72c4349f23ae001c508020f857f590edfb53497e82151bf0ed2de4215b67d",
+      "size": 577
     }
   ],
-  "remove": []
+  "remove": [
+    "out/renderer/assets/index-CvN8dW22.js"
+  ]
 }
