@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.6-top-account-bar-20260830",
+  "patchId": "4.0.6-account-settings-modal-20260830",
   "baseVersions": [
     "4.0.6"
   ],
   "targetVersion": "4.0.6",
-  "publishedAt": "2026-08-30T16:50:35.870Z",
-  "description": "Rename the application to Bi-Talks and move account switching to a compact top bar",
+  "publishedAt": "2026-08-30T17:13:09.541Z",
+  "description": "Replace clipped account context menus with per-account settings dialogs",
   "files": [
     {
       "path": "build/icons/app.png",
@@ -46,16 +46,16 @@
       "size": 28135
     },
     {
-      "path": "out/renderer/assets/index-bcCvfZhq.css",
-      "url": "files/out/renderer/assets/index-bcCvfZhq.css",
-      "sha256": "af9a2a213ca789a9ed4b89a2f78435c627c1165153462966b8661e08c2309430",
-      "size": 29898
+      "path": "out/renderer/assets/index-BrsNj4FP.css",
+      "url": "files/out/renderer/assets/index-BrsNj4FP.css",
+      "sha256": "eac470f04e2e8d4b4230d38c270875b930b412073e7177aefd9f9544eb78fb6d",
+      "size": 31285
     },
     {
-      "path": "out/renderer/assets/index-BY0PtnKF.js",
-      "url": "files/out/renderer/assets/index-BY0PtnKF.js",
-      "sha256": "fafe902250066c5ce3d0211f8252c5a9facf20ee9d3a1067bb61c8f30d4c02b1",
-      "size": 779021
+      "path": "out/renderer/assets/index-DU7a6lJN.js",
+      "url": "files/out/renderer/assets/index-DU7a6lJN.js",
+      "sha256": "6c66d5fc1031e77c66e4ce22f43befb4320c796a22ae58821b18c5b2e7353fba",
+      "size": 778993
     },
     {
       "path": "out/renderer/favicon.png",
@@ -66,7 +66,7 @@
     {
       "path": "out/renderer/index.html",
       "url": "files/out/renderer/index.html",
-      "sha256": "3ab33e6989f6bb9fdf0143b8bc61d30ff94d5729ffe158589f37c4fad3e1feb1",
+      "sha256": "0081d53b64d69f0a4539728fbb5fe7f89312e2c949e63636240190d4e8026e0e",
       "size": 670
     },
     {

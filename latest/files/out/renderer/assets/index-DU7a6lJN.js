@@ -16550,22 +16550,6 @@ const Paperclip = createLucideIcon("Paperclip", [
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Pencil = createLucideIcon("Pencil", [
-  [
-    "path",
-    {
-      d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
-      key: "1a8usu"
-    }
-  ],
-  ["path", { d: "m15 5 4 4", key: "1mk7zo" }]
-]);
-/**
- * @license lucide-react v0.468.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
 const PhoneCall = createLucideIcon("PhoneCall", [
   [
     "path",
@@ -17026,13 +17010,12 @@ function App() {
   const [updateDialogOpen, setUpdateDialogOpen] = reactExports.useState(false);
   const [confirmRemove, setConfirmRemove] = reactExports.useState();
   const [confirmCloseOpen, setConfirmCloseOpen] = reactExports.useState(false);
-  const [renameAccount, setRenameAccount] = reactExports.useState();
+  const [accountSettingsAccountId, setAccountSettingsAccountId] = reactExports.useState();
   const [conversationId, setConversationId] = reactExports.useState("");
   const [notice, setNotice] = reactExports.useState();
   const [noticeProgress, setNoticeProgress] = reactExports.useState();
   const [refreshingMessageIds, setRefreshingMessageIds] = reactExports.useState(() => /* @__PURE__ */ new Set());
   const [accountPanelWidth, setAccountPanelWidth] = reactExports.useState(150);
-  const [accountMenu, setAccountMenu] = reactExports.useState();
   const [signalUpdating, setSignalUpdating] = reactExports.useState(false);
   const [workspacePreview, setWorkspacePreview] = reactExports.useState();
   const [accountLifecycleRevision, setAccountLifecycleRevision] = reactExports.useState(0);
@@ -17233,6 +17216,10 @@ function App() {
     return () => media.removeEventListener("change", update);
   }, [state?.settings.themeMode]);
   const selectedAccount = reactExports.useMemo(() => state?.accounts.find((item) => item.id === state.selectedAccountId), [state]);
+  const accountSettingsAccount = reactExports.useMemo(
+    () => state?.accounts.find((item) => item.id === accountSettingsAccountId),
+    [accountSettingsAccountId, state?.accounts]
+  );
   const selectedSignalIsAttached = !!selectedAccount && selectedAccount.platform === "signal" && attachedSignalAccountIds.has(selectedAccount.id);
   const selectedSignalLooksReady = selectedSignalIsAttached;
   const accounts = reactExports.useMemo(() => {
@@ -17243,7 +17230,7 @@ function App() {
   }, [state]);
   const workspaceIsWeb = !!selectedAccount && webPlatforms.has(selectedAccount.platform);
   const workspaceIsSignalDesktop = selectedAccount?.platform === "signal";
-  const modalIsOpen = addOpen || settingsOpen || updateDialogOpen || !!confirmRemove || !!renameAccount || confirmCloseOpen;
+  const modalIsOpen = addOpen || settingsOpen || updateDialogOpen || !!confirmRemove || !!accountSettingsAccountId || confirmCloseOpen;
   const conversations = reactExports.useMemo(
     () => summarizeConversations(messages, selectedAccount?.id, conversationId),
     [messages, selectedAccount?.id, conversationId]
@@ -17380,7 +17367,7 @@ function App() {
   }, [hideSignalForOverlayUi]);
   reactExports.useEffect(() => window.desktop.onCloseRequested(() => {
     hideSignalForOverlayUi();
-    setAccountMenu(void 0);
+    setAccountSettingsAccountId(void 0);
     setConfirmCloseOpen(true);
   }), [hideSignalForOverlayUi]);
   reactExports.useEffect(() => {
@@ -17609,37 +17596,37 @@ function App() {
       }
     })();
   };
-  const updateAccountPreference = async (account, patch) => {
-    if (!state) return;
-    const updated = { ...account, ...patch };
+  const saveAccountSettings = async (accountId, values) => {
+    const currentState = latestState.current || state;
+    if (!currentState) return;
+    const currentAccount = currentState.accounts.find((item) => item.id === accountId);
+    if (!currentAccount) throw new Error("找不到该账号，请重新打开账号设置");
+    const trimmedLabel = values.label.trim();
+    if (!trimmedLabel) throw new Error("账号名称不能为空");
+    const updated = {
+      ...currentAccount,
+      label: trimmedLabel,
+      zoom: values.zoom,
+      translationEnabled: values.translationEnabled,
+      translationSize: values.translationSize,
+      translationColor: values.translationColor
+    };
     const next = {
-      ...state,
-      accounts: state.accounts.map((item) => item.id === account.id ? updated : item)
+      ...currentState,
+      accounts: currentState.accounts.map((item) => item.id === accountId ? updated : item)
     };
     await save(next);
     await window.desktop.applyAccountPreferences(updated).catch((error) => setNotice(error instanceof Error ? error.message : String(error)));
+    setAccountSettingsAccountId(void 0);
   };
-  const updateAccountLabel = async (account, label) => {
-    if (!state) return;
-    const trimmed = label.trim();
-    if (!trimmed) return;
-    await save({
-      ...state,
-      accounts: state.accounts.map((item) => item.id === account.id ? { ...item, label: trimmed } : item)
-    });
-    setRenameAccount(void 0);
-  };
-  const openAccountMenu = (event, account) => {
+  const openAccountSettings = (event, account) => {
     event.preventDefault();
     event.stopPropagation();
-    const menuWidth = 198;
-    const menuHeight = translationTogglePlatforms.has(account.platform) ? 424 : translationPreferencePlatforms.has(account.platform) ? 392 : 244;
-    const x = Math.max(6, Math.min(event.clientX, window.innerWidth - menuWidth - 6));
-    const y = Math.max(6, Math.min(event.clientY, window.innerHeight - menuHeight - 6));
-    setAccountMenu({ accountId: account.id, x, y });
+    hideSignalForOverlayUi();
+    setNotice(void 0);
+    setAccountSettingsAccountId(account.id);
   };
   const startAccountAction = async (account) => {
-    setAccountMenu(void 0);
     manuallyClosedAccountIds.current.delete(account.id);
     setAccountLifecycleRevision((value) => value + 1);
     await selectAccount(account);
@@ -17673,7 +17660,6 @@ function App() {
     }
   };
   const refreshAccountAction = async (account) => {
-    setAccountMenu(void 0);
     manuallyClosedAccountIds.current.delete(account.id);
     setAccountLifecycleRevision((value) => value + 1);
     if (account.platform === "signal") {
@@ -17695,7 +17681,6 @@ function App() {
     });
   };
   const closeAccountAction = async (account) => {
-    setAccountMenu(void 0);
     manuallyClosedAccountIds.current.add(account.id);
     setAccountLifecycleRevision((value) => value + 1);
     autoSignalAttachAttempts.current.delete(account.id);
@@ -17713,7 +17698,6 @@ function App() {
   };
   const updateSignalDesktopAction = async (account) => {
     if (account.platform !== "signal" || !state) return;
-    setAccountMenu(void 0);
     const updateAlreadyRunning = await window.desktop.isSignalDesktopUpdating().catch(() => false);
     if (updateAlreadyRunning) {
       setSignalUpdating(true);
@@ -17792,7 +17776,7 @@ function App() {
       delete next[account.id];
       return next;
     });
-    setRenameAccount((current) => current?.id === account.id ? void 0 : current);
+    setAccountSettingsAccountId((current) => current === account.id ? void 0 : current);
   };
   const refreshTranslation = async (message) => {
     if (!state || !message.originalText.trim()) return;
@@ -17816,23 +17800,12 @@ function App() {
       });
     }
   };
-  reactExports.useEffect(() => {
-    if (!accountMenu) return;
-    const close = () => setAccountMenu(void 0);
-    window.addEventListener("pointerdown", close);
-    window.addEventListener("blur", close);
-    return () => {
-      window.removeEventListener("pointerdown", close);
-      window.removeEventListener("blur", close);
-    };
-  }, [accountMenu]);
   if (!state) return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "loading", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { className: "spin", size: 18 }),
     "Loading"
   ] });
   const visiblePlatformOrder = state.platformOrder;
   const filteredMessages = messages.filter((item) => item.accountId === selectedAccount?.id && item.conversationId === activeConversationId);
-  const menuAccount = accountMenu ? state.accounts.find((account) => account.id === accountMenu.accountId) : void 0;
   const platformUnreadCounts = Object.fromEntries(
     Object.keys(platforms).map((platform) => [platform, 0])
   );
@@ -17888,149 +17861,34 @@ function App() {
               /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "platform-button", title: "Settings", onClick: openSettings, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { size: 20 }) })
             ] })
           ] }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("aside", { ref: accountPanel, className: "account-panel-shell", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-panel", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(DndContext, { sensors, collisionDetection: closestCenter, onDragEnd: accountDrop, children: /* @__PURE__ */ jsxRuntimeExports.jsx(SortableContext, { items: accounts.map((item) => item.id), strategy: horizontalListSortingStrategy, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "account-list", children: accounts.map((account) => {
-                return /* @__PURE__ */ jsxRuntimeExports.jsx(SortableItem, { id: account.id, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                  "div",
-                  {
-                    className: `account-row ${selectedAccount?.id === account.id ? "active" : ""}`,
-                    onClick: () => void selectAccount(account),
-                    onContextMenu: (event) => openAccountMenu(event, account),
-                    children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-avatar", children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(PlatformIcon, { platform: account.platform, className: "account-platform-icon" }),
-                        account.platform !== "telegram" && !!unreadCounts[account.id] && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "unread-badge account-unread-badge", children: unreadLabel(unreadCounts[account.id]) })
-                      ] }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-copy", children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: account.label }),
-                        /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: statuses[account.id] || account.identifier || "Ready" })
-                      ] })
-                    ]
-                  }
-                ) }, account.id);
-              }) }) }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "account-add-slot", children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "icon-button primary", onClick: openAddAccount, title: "Add account", "aria-label": "Add account", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { size: 18 }) }) })
-            ] }),
-            accountMenu && menuAccount && /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "div",
-              {
-                className: "account-context-menu",
-                style: { left: accountMenu.x, top: accountMenu.y },
-                onPointerDown: (event) => event.stopPropagation(),
-                onClick: (event) => event.stopPropagation(),
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", onClick: () => {
-                    setAccountMenu(void 0);
-                    setRenameAccount(menuAccount);
-                  }, children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Pencil, { size: 14 }),
-                    "编辑名称"
-                  ] }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", onClick: () => void startAccountAction(menuAccount), children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Play, { size: 14 }),
-                    "启动账号"
-                  ] }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", onClick: () => void refreshAccountAction(menuAccount), children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(RotateCw, { size: 14 }),
-                    "刷新账号"
-                  ] }),
-                  menuAccount.platform === "signal" && /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", onClick: () => void updateSignalDesktopAction(menuAccount), children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { size: 14 }),
-                    "更新 Signal"
-                  ] }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "danger-menu-item", type: "button", onClick: () => void closeAccountAction(menuAccount), children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Power, { size: 14 }),
-                    "关闭账号"
-                  ] }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "danger-menu-item", type: "button", onClick: () => {
-                    setAccountMenu(void 0);
-                    setConfirmRemove(menuAccount);
-                  }, children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { size: 14 }),
-                    "删除账号"
-                  ] }),
-                  webPlatforms.has(menuAccount.platform) && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "account-menu-section", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(ZoomIn, { size: 13 }),
-                      "缩放大小 ",
-                      menuAccount.zoom || 100,
-                      "%"
+          /* @__PURE__ */ jsxRuntimeExports.jsx("aside", { ref: accountPanel, className: "account-panel-shell", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-panel", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(DndContext, { sensors, collisionDetection: closestCenter, onDragEnd: accountDrop, children: /* @__PURE__ */ jsxRuntimeExports.jsx(SortableContext, { items: accounts.map((item) => item.id), strategy: horizontalListSortingStrategy, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "account-list", children: accounts.map((account) => {
+              return /* @__PURE__ */ jsxRuntimeExports.jsx(SortableItem, { id: account.id, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "div",
+                {
+                  className: `account-row ${selectedAccount?.id === account.id ? "active" : ""}`,
+                  onClick: () => void selectAccount(account),
+                  onContextMenu: (event) => openAccountSettings(event, account),
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-avatar", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(PlatformIcon, { platform: account.platform, className: "account-platform-icon" }),
+                      account.platform !== "telegram" && !!unreadCounts[account.id] && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "unread-badge account-unread-badge", children: unreadLabel(unreadCounts[account.id]) })
                     ] }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      "input",
-                      {
-                        type: "range",
-                        min: 40,
-                        max: 160,
-                        step: 5,
-                        value: menuAccount.zoom || 100,
-                        onChange: (event) => void updateAccountPreference(menuAccount, { zoom: Number(event.currentTarget.value) })
-                      }
-                    )
-                  ] }) }),
-                  translationPreferencePlatforms.has(menuAccount.platform) && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-                    translationTogglePlatforms.has(menuAccount.platform) && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "account-menu-section", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "account-menu-switch-row", children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(Languages, { size: 13 }),
-                        "启用翻译"
-                      ] }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        "input",
-                        {
-                          type: "checkbox",
-                          checked: menuAccount.translationEnabled !== false,
-                          onChange: (event) => void updateAccountPreference(menuAccount, { translationEnabled: event.currentTarget.checked })
-                        }
-                      )
-                    ] }) }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "account-menu-section", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(Type, { size: 13 }),
-                        "译文大小 ",
-                        menuAccount.translationSize || 15,
-                        "px"
-                      ] }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        "input",
-                        {
-                          type: "range",
-                          min: 10,
-                          max: 24,
-                          step: 1,
-                          value: menuAccount.translationSize || 15,
-                          onChange: (event) => void updateAccountPreference(menuAccount, { translationSize: Number(event.currentTarget.value) })
-                        }
-                      )
-                    ] }) }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-menu-section", children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "account-menu-label", children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(Palette, { size: 13 }),
-                        "译文颜色"
-                      ] }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "translation-color-grid", children: translationColors.map((color) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        "button",
-                        {
-                          type: "button",
-                          className: `translation-color-dot ${menuAccount.translationColor === color.value ? "active" : ""}`,
-                          style: { "--swatch": color.value },
-                          title: color.label,
-                          "aria-label": color.label,
-                          onClick: () => void updateAccountPreference(menuAccount, { translationColor: color.value })
-                        },
-                        color.value
-                      )) })
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-copy", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: account.label }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: statuses[account.id] || account.identifier || "Ready" })
                     ] })
-                  ] })
-                ]
-              }
-            )
-          ] }),
+                  ]
+                }
+              ) }, account.id);
+            }) }) }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "account-add-slot", children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "icon-button primary", onClick: openAddAccount, title: "Add account", "aria-label": "Add account", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { size: 18 }) }) })
+          ] }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("main", { className: "workspace-panel", children: /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: "workspace", style: workspaceTranslationStyle, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { ref: contentArea, className: "content-area", children: workspaceIsWeb ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { ref: webSurface, className: "web-surface", children: workspacePreview?.accountId === selectedAccount?.id ? /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "workspace-taskbar-preview", src: workspacePreview.dataUrl, alt: "", "aria-hidden": "true", draggable: false }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "web-loading", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(ExternalLink, { size: 18 }),
             "Web account surface"
           ] }) }) : workspaceIsSignalDesktop ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: signalSurface, className: `signal-desktop-surface ${selectedSignalLooksReady ? "attached" : ""}`, children: [
-            (settingsOpen || addOpen || confirmCloseOpen || updateDialogOpen) && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "signal-settings-blackout", "aria-hidden": "true" }),
+            (settingsOpen || addOpen || confirmCloseOpen || updateDialogOpen || !!accountSettingsAccountId || !!confirmRemove) && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "signal-settings-blackout", "aria-hidden": "true" }),
             workspacePreview?.accountId === selectedAccount?.id && /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "workspace-taskbar-preview", src: workspacePreview.dataUrl, alt: "", "aria-hidden": "true", draggable: false }),
             !selectedSignalLooksReady && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "signal-desktop-card", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx(PlatformIcon, { platform: "signal", className: "account-platform-icon" }),
@@ -18097,13 +17955,23 @@ function App() {
     ),
     addOpen && /* @__PURE__ */ jsxRuntimeExports.jsx(AddAccount, { state, save, onClose: () => setAddOpen(false), onAdded: handleAccountAdded }),
     settingsOpen && /* @__PURE__ */ jsxRuntimeExports.jsx(SettingsModal, { state, save, onClose: () => setSettingsOpen(false), onNotice: setNotice }),
-    renameAccount && /* @__PURE__ */ jsxRuntimeExports.jsx(
-      RenameAccountModal,
+    accountSettingsAccount && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      AccountSettingsModal,
       {
-        account: renameAccount,
-        onCancel: () => setRenameAccount(void 0),
-        onSave: (label) => updateAccountLabel(renameAccount, label)
-      }
+        account: accountSettingsAccount,
+        signalUpdating,
+        onCancel: () => setAccountSettingsAccountId(void 0),
+        onSave: (values) => saveAccountSettings(accountSettingsAccount.id, values),
+        onStart: () => startAccountAction(accountSettingsAccount),
+        onRefresh: () => refreshAccountAction(accountSettingsAccount),
+        onUpdateSignal: () => updateSignalDesktopAction(accountSettingsAccount),
+        onCloseAccount: () => closeAccountAction(accountSettingsAccount),
+        onRemove: () => {
+          setAccountSettingsAccountId(void 0);
+          setConfirmRemove(accountSettingsAccount);
+        }
+      },
+      accountSettingsAccount.id
     ),
     confirmRemove && /* @__PURE__ */ jsxRuntimeExports.jsx(
       ConfirmRemoveAccount,
@@ -18233,11 +18101,27 @@ function AddAccount({ state, save, onClose, onAdded }) {
     }
   ) });
 }
-function RenameAccountModal({ account, onCancel, onSave }) {
+function AccountSettingsModal({
+  account,
+  signalUpdating,
+  onCancel,
+  onSave,
+  onStart,
+  onRefresh,
+  onUpdateSignal,
+  onCloseAccount,
+  onRemove
+}) {
   const [label, setLabel] = reactExports.useState(account.label);
+  const [zoom, setZoom] = reactExports.useState(account.zoom || 100);
+  const [translationEnabled, setTranslationEnabled] = reactExports.useState(account.translationEnabled !== false);
+  const [translationSize, setTranslationSize] = reactExports.useState(account.translationSize || 15);
+  const [translationColor, setTranslationColor] = reactExports.useState(account.translationColor || "#d8ff00");
   const [saving, setSaving] = reactExports.useState(false);
+  const [runningAction, setRunningAction] = reactExports.useState();
   const [error, setError] = reactExports.useState("");
   const trimmedLabel = label.trim();
+  const controlsDisabled = saving || !!runningAction;
   const submit = async () => {
     if (saving) return;
     if (!trimmedLabel) {
@@ -18247,14 +18131,37 @@ function RenameAccountModal({ account, onCancel, onSave }) {
     setSaving(true);
     setError("");
     try {
-      await onSave(trimmedLabel);
+      await onSave({ label: trimmedLabel, zoom, translationEnabled, translationSize, translationColor });
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : String(saveError));
       setSaving(false);
     }
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Modal, { title: "编辑账号名称", onClose: onCancel, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-stack", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { children: [
+  const runAction = async (name, action) => {
+    if (controlsDisabled) return;
+    setRunningAction(name);
+    setError("");
+    try {
+      await action();
+      onCancel();
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : String(actionError));
+      setRunningAction(void 0);
+    }
+  };
+  const actionIcon = (name, icon) => runningAction === name ? /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { className: "spin", size: 15 }) : icon;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Modal, { title: "账号设置", onClose: controlsDisabled ? () => void 0 : onCancel, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-stack account-settings-form", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-settings-heading", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(PlatformIcon, { platform: account.platform, className: "account-platform-icon" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: account.label }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("small", { children: [
+          platforms[account.platform].name,
+          account.identifier ? ` · ${account.identifier}` : ""
+        ] })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "settings-section", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { children: [
       "账号名称",
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "input",
@@ -18262,20 +18169,123 @@ function RenameAccountModal({ account, onCancel, onSave }) {
           autoFocus: true,
           value: label,
           maxLength: 64,
+          disabled: controlsDisabled,
           onChange: (event) => {
             setLabel(event.target.value);
             if (error) setError("");
-          },
-          onKeyDown: (event) => {
-            if (event.key === "Enter") void submit();
           }
         }
       )
+    ] }) }),
+    webPlatforms.has(account.platform) && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "settings-section account-settings-range", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ZoomIn, { size: 14 }),
+        "网页缩放 ",
+        zoom,
+        "%"
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          type: "range",
+          min: 40,
+          max: 160,
+          step: 5,
+          value: zoom,
+          disabled: controlsDisabled,
+          onChange: (event) => setZoom(Number(event.currentTarget.value))
+        }
+      )
+    ] }) }),
+    translationPreferencePlatforms.has(account.platform) && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "settings-section account-translation-settings", children: [
+      translationTogglePlatforms.has(account.platform) && /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "switch-row", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "checkbox",
+            checked: translationEnabled,
+            disabled: controlsDisabled,
+            onChange: (event) => setTranslationEnabled(event.currentTarget.checked)
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "switch-control", "aria-hidden": "true" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Languages, { size: 14 }),
+          "启用翻译"
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "account-settings-range", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Type, { size: 14 }),
+          "译文大小 ",
+          translationSize,
+          "px"
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "range",
+            min: 10,
+            max: 24,
+            step: 1,
+            value: translationSize,
+            disabled: controlsDisabled,
+            onChange: (event) => setTranslationSize(Number(event.currentTarget.value))
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-color-setting", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Palette, { size: 14 }),
+          "译文颜色"
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "translation-color-grid", children: translationColors.map((color) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "button",
+          {
+            type: "button",
+            className: `translation-color-dot ${translationColor === color.value ? "active" : ""}`,
+            style: { "--swatch": color.value },
+            title: color.label,
+            "aria-label": color.label,
+            disabled: controlsDisabled,
+            onClick: () => setTranslationColor(color.value)
+          },
+          color.value
+        )) })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "settings-section account-lifecycle-section", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "账号操作" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "以下操作只作用于当前账号。" })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-action-grid", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", disabled: controlsDisabled, onClick: () => void runAction("start", onStart), children: [
+          actionIcon("start", /* @__PURE__ */ jsxRuntimeExports.jsx(Play, { size: 15 })),
+          "启动账号"
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", disabled: controlsDisabled, onClick: () => void runAction("refresh", onRefresh), children: [
+          actionIcon("refresh", /* @__PURE__ */ jsxRuntimeExports.jsx(RotateCw, { size: 15 })),
+          "刷新账号"
+        ] }),
+        account.platform === "signal" && /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", disabled: controlsDisabled || signalUpdating, onClick: () => void runAction("update", onUpdateSignal), children: [
+          actionIcon("update", /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { size: 15 })),
+          "更新 Signal"
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "danger-account-action", type: "button", disabled: controlsDisabled, onClick: () => void runAction("close", onCloseAccount), children: [
+          actionIcon("close", /* @__PURE__ */ jsxRuntimeExports.jsx(Power, { size: 15 })),
+          "关闭账号"
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "danger-account-action", type: "button", disabled: controlsDisabled, onClick: onRemove, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { size: 15 }),
+          "删除账号"
+        ] })
+      ] })
     ] }),
     error && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "notice", children: error }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "modal-actions", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "ghost-button", type: "button", disabled: saving, onClick: onCancel, children: "取消" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "primary-button", type: "button", disabled: saving || !trimmedLabel, onClick: () => void submit(), children: saving ? "保存中..." : "保存" })
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "ghost-button", type: "button", disabled: controlsDisabled, onClick: onCancel, children: "取消" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "primary-button", type: "button", disabled: controlsDisabled || !trimmedLabel, onClick: () => void submit(), children: saving ? "保存中..." : "保存" })
     ] })
   ] }) });
 }
