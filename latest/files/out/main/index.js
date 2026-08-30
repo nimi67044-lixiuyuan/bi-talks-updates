@@ -6124,7 +6124,24 @@ async function createWindow() {
     log: runtimeLog,
     quitForApply: () => {
       closeApproved = true;
-      app.quit();
+      shuttingDown = true;
+      persistUnreadCounts();
+      webViews?.shutdown();
+      googleVoice?.shutdown();
+      signal?.shutdown();
+      tray?.destroy();
+      tray = void 0;
+      const exitForPatch = () => app.exit(0);
+      if (!translator || translationHistoryFlushStarted) {
+        exitForPatch();
+        return;
+      }
+      translationHistoryFlushStarted = true;
+      const forceExitTimer = setTimeout(exitForPatch, 1500);
+      void translator.flushHistory().catch((error) => runtimeLog("patch quit history flush failed", error instanceof Error ? error.message : String(error))).finally(() => {
+        clearTimeout(forceExitTimer);
+        exitForPatch();
+      });
     }
   });
   if (workspaceTaskbarPreviewTimer) clearInterval(workspaceTaskbarPreviewTimer);
