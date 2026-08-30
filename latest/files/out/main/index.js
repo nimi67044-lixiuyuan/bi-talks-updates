@@ -5149,7 +5149,7 @@ class AppPatchManager {
     const patchId = typeof result.patchId === "string" ? result.patchId : void 0;
     if (result.status === "success" && patchId) {
       await this.rememberAppliedPatch(patchId);
-      const message2 = `在线补丁 ${patchId} 已安装完成。`;
+      const message2 = "更新已完成。";
       this.options.log("patch apply completed", result);
       this.event("complete", message2);
       return;

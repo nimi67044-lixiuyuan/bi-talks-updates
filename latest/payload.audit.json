@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.6-signal-safe-send-20260829",
+  "patchId": "4.0.6-update-complete-message-20260829",
   "baseVersions": [
     "4.0.6"
   ],
   "targetVersion": "4.0.6",
-  "publishedAt": "2026-08-30T01:41:35.501Z",
-  "description": "修复 Signal 输入框在失焦后偶发自动发送：只接受明确发送意图，取消错误控件识别，并在失焦、切换或草稿变化时撤销待发送任务。",
+  "publishedAt": "2026-08-30T02:00:14.579Z",
+  "description": "更新安装完成后仅显示",
   "files": [
     {
       "path": "build/icons/app.png",
@@ -30,8 +30,8 @@
     {
       "path": "out/main/index.js",
       "url": "files/out/main/index.js",
-      "sha256": "ea8fdd4c55c86e619ed6dd97101a7bf04cea0a0ab7dbe65b726ebafd53bb97f7",
-      "size": 305485
+      "sha256": "bedd2a518f2e84f1eee295b91f6086e671d7f3c630d7d6035dace4da97ca0996",
+      "size": 305461
     },
     {
       "path": "out/preload/index.cjs",
