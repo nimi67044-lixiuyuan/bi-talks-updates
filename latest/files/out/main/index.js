@@ -14,30 +14,12 @@ import __cjs_mod__ from "node:module";
 const __filename = import.meta.filename;
 const __dirname = import.meta.dirname;
 const require2 = __cjs_mod__.createRequire(import.meta.url);
-const customApiPresets = [
-  { id: "custom", label: "完全自定义", protocol: "openai-chat", baseUrl: "", model: "" },
-  { id: "openai", label: "OpenAI", protocol: "openai-responses", baseUrl: "https://api.openai.com/v1", model: "gpt-4.1-mini" },
-  { id: "deepseek", label: "DeepSeek", protocol: "openai-chat", baseUrl: "https://api.deepseek.com/v1", model: "deepseek-chat" },
-  { id: "openrouter", label: "OpenRouter", protocol: "openai-chat", baseUrl: "https://openrouter.ai/api/v1", model: "openai/gpt-4o-mini" },
-  { id: "groq", label: "Groq", protocol: "openai-chat", baseUrl: "https://api.groq.com/openai/v1", model: "llama-3.3-70b-versatile" },
-  { id: "siliconflow", label: "硅基流动", protocol: "openai-chat", baseUrl: "https://api.siliconflow.cn/v1", model: "Qwen/Qwen2.5-7B-Instruct" },
-  { id: "moonshot", label: "Moonshot", protocol: "openai-chat", baseUrl: "https://api.moonshot.cn/v1", model: "moonshot-v1-8k" },
-  { id: "anthropic", label: "Anthropic Claude", protocol: "anthropic", baseUrl: "https://api.anthropic.com/v1", model: "claude-3-5-haiku-latest" },
-  { id: "gemini", label: "Google Gemini", protocol: "gemini", baseUrl: "https://generativelanguage.googleapis.com/v1beta", model: "gemini-2.0-flash" },
-  { id: "kitool", label: "Kitool.ai（兼容预设）", protocol: "openai-responses", baseUrl: "https://kitool.ai/v1", model: "gpt-5.5" }
-];
-const defaultCustomApiConfig = {
-  preset: "custom",
-  protocol: "openai-chat",
-  baseUrl: "",
+const groqChatCompletionsEndpoint = "https://api.groq.com/openai/v1/chat/completions";
+const defaultGroqApiConfig = {
   apiKey: "",
-  model: "",
-  timeoutSeconds: 30,
-  customHeaders: ""
+  model: "qwen/qwen3.6-27b",
+  timeoutSeconds: 30
 };
-function customApiPreset(id) {
-  return customApiPresets.find((preset) => preset.id === id);
-}
 const protectedSecretPrefix = "bitalks-safe:v1:";
 function cloneRecord(value) {
   return structuredClone(value);
@@ -54,6 +36,11 @@ function transformPersistedSecrets(input, transform) {
   const settingsRecord = settings;
   if ("deeplApiKey" in settingsRecord) settingsRecord.deeplApiKey = transformSecret(settingsRecord.deeplApiKey, transform);
   if ("kitoolApiKey" in settingsRecord) settingsRecord.kitoolApiKey = transformSecret(settingsRecord.kitoolApiKey, transform);
+  const groqApi = settingsRecord.groqApi;
+  if (groqApi && typeof groqApi === "object") {
+    const groqApiRecord = groqApi;
+    if ("apiKey" in groqApiRecord) groqApiRecord.apiKey = transformSecret(groqApiRecord.apiKey, transform);
+  }
   const customApi = settingsRecord.customApi;
   if (customApi && typeof customApi === "object") {
     const customApiRecord = customApi;
@@ -99,7 +86,7 @@ function normalizeApiUsage(value, today = localDayKey()) {
 function normalizeApiUsageByProvider(value) {
   const source = value && typeof value === "object" ? value : {};
   return {
-    customAi: normalizeApiUsage(source.customAi ?? source.kitool),
+    groq: normalizeApiUsage(source.groq ?? source.customAi ?? source.kitool),
     deepl: normalizeApiUsage(source.deepl)
   };
 }
@@ -113,10 +100,10 @@ const initialState = {
     incomingTarget: "zh",
     themeMode: "system",
     translationProvider: "deepl",
-    customApi: structuredClone(defaultCustomApiConfig),
+    groqApi: structuredClone(defaultGroqApiConfig),
     deeplApiKey: "",
     apiUsage: {
-      customAi: emptyApiUsage(),
+      groq: emptyApiUsage(),
       deepl: emptyApiUsage()
     },
     translationSizeDefaultVersion: 3,
@@ -127,25 +114,20 @@ function normalizeThemeMode(value) {
   return value === "light" || value === "dark" || value === "system" ? value : initialState.settings.themeMode;
 }
 function normalizeTranslationProvider(value) {
-  if (value === "kitool") return "custom-ai";
-  return value === "custom-ai" || value === "deepl" ? value : initialState.settings.translationProvider;
+  if (value === "kitool" || value === "custom-ai") return "groq";
+  return value === "groq" || value === "deepl" ? value : initialState.settings.translationProvider;
 }
-function normalizeCustomApiProtocol(value) {
-  return value === "openai-chat" || value === "openai-responses" || value === "anthropic" || value === "gemini" ? value : defaultCustomApiConfig.protocol;
-}
-function normalizeCustomApiConfig(value, legacyApiKey = "", migrateKitool = false) {
+function normalizeGroqApiConfig(value, legacyCustomApi) {
   const source = value && typeof value === "object" ? value : {};
-  const legacyPreset = migrateKitool ? customApiPreset("kitool") : void 0;
-  const requestedPreset = typeof source.preset === "string" ? customApiPreset(source.preset) : void 0;
-  const preset = legacyPreset || requestedPreset;
+  const legacy = legacyCustomApi && typeof legacyCustomApi === "object" ? legacyCustomApi : {};
+  const legacyBaseUrl = typeof legacy.baseUrl === "string" ? legacy.baseUrl.trim().toLowerCase() : "";
+  const legacyWasGroq = legacy.preset === "groq" || legacyBaseUrl.includes("api.groq.com");
+  const migratedApiKey = legacyWasGroq && typeof legacy.apiKey === "string" ? legacy.apiKey.trim() : "";
+  const migratedModel = legacyWasGroq && typeof legacy.model === "string" ? legacy.model.trim() : "";
   return {
-    preset: preset?.id || defaultCustomApiConfig.preset,
-    protocol: normalizeCustomApiProtocol(source.protocol || preset?.protocol),
-    baseUrl: typeof source.baseUrl === "string" && source.baseUrl.trim() ? source.baseUrl.trim() : preset?.baseUrl || "",
-    apiKey: typeof source.apiKey === "string" && source.apiKey.trim() ? source.apiKey.trim() : legacyApiKey.trim(),
-    model: typeof source.model === "string" && source.model.trim() ? source.model.trim() : preset?.model || "",
-    timeoutSeconds: clampNumber(source.timeoutSeconds, 5, 120, defaultCustomApiConfig.timeoutSeconds),
-    customHeaders: typeof source.customHeaders === "string" ? source.customHeaders.trim() : ""
+    apiKey: typeof source.apiKey === "string" && source.apiKey.trim() ? source.apiKey.trim() : migratedApiKey,
+    model: typeof source.model === "string" && source.model.trim() ? source.model.trim() : migratedModel || defaultGroqApiConfig.model,
+    timeoutSeconds: clampNumber(source.timeoutSeconds ?? legacy.timeoutSeconds, 5, 120, defaultGroqApiConfig.timeoutSeconds)
   };
 }
 function clampNumber(value, min, max, fallback) {
@@ -217,11 +199,7 @@ function normalizeState(state) {
       incomingTarget: state.settings.incomingTarget || initialState.settings.incomingTarget,
       themeMode: normalizeThemeMode(state.settings.themeMode),
       translationProvider: normalizeTranslationProvider(legacySettings.translationProvider),
-      customApi: normalizeCustomApiConfig(
-        state.settings.customApi,
-        typeof legacySettings.kitoolApiKey === "string" ? legacySettings.kitoolApiKey : "",
-        legacySettings.translationProvider === "kitool" || !!legacySettings.kitoolApiKey
-      ),
+      groqApi: normalizeGroqApiConfig(state.settings.groqApi, legacySettings.customApi),
       deeplApiKey: typeof state.settings.deeplApiKey === "string" ? state.settings.deeplApiKey.trim() : "",
       apiUsage: normalizeApiUsageByProvider(state.settings.apiUsage),
       translationSizeDefaultVersion: 3,
@@ -284,10 +262,10 @@ class StateStore {
     return structuredClone(this.state);
   }
   async recordTranslationUsage(provider, characters) {
-    if (provider !== "custom-ai" && provider !== "deepl" || !Number.isFinite(characters) || characters <= 0) return this.get();
+    if (provider !== "groq" && provider !== "deepl" || !Number.isFinite(characters) || characters <= 0) return this.get();
     const count = Math.min(Number.MAX_SAFE_INTEGER, Math.floor(characters));
     const today = localDayKey();
-    const usageKey = provider === "custom-ai" ? "customAi" : "deepl";
+    const usageKey = provider === "groq" ? "groq" : "deepl";
     const usage = normalizeApiUsage(this.state.settings.apiUsage?.[usageKey], today);
     const updatedUsage = {
       totalCharacters: Math.min(Number.MAX_SAFE_INTEGER, usage.totalCharacters + count),
@@ -377,19 +355,19 @@ class Translator {
   apiFailureCounts = /* @__PURE__ */ new Map();
   apiTestsInFlight = /* @__PURE__ */ new Map();
   apiTestLastRequestAt = /* @__PURE__ */ new Map();
-  async testApi(provider, apiKey, customConfig) {
-    const identity = this.apiTestIdentity(provider, apiKey, customConfig);
+  async testApi(provider, apiKey, groqConfig) {
+    const identity = this.apiTestIdentity(provider, apiKey, groqConfig);
     const pending = this.apiTestsInFlight.get(identity);
     if (pending) return pending;
-    const request = this.runApiTest(identity, provider, apiKey, customConfig).finally(() => this.apiTestsInFlight.delete(identity));
+    const request = this.runApiTest(identity, provider, apiKey, groqConfig).finally(() => this.apiTestsInFlight.delete(identity));
     this.apiTestsInFlight.set(identity, request);
     return request;
   }
-  async runApiTest(identity, provider, apiKey, customConfig) {
+  async runApiTest(identity, provider, apiKey, groqConfig) {
     const sample = "Bi-Talks API test";
     try {
       await this.waitForApiTestWindow(identity);
-      await this.requestApiTestWithRateLimitRetry(provider, apiKey, sample, customConfig);
+      await this.requestApiTestWithRateLimitRetry(provider, apiKey, sample, groqConfig);
       await this.recordApiUsage(provider, sample).catch(() => void 0);
       return { ok: true, provider, message: `${this.providerName(provider)} API 验证成功。` };
     } catch (error) {
@@ -401,8 +379,8 @@ class Translator {
       };
     }
   }
-  apiTestIdentity(provider, apiKey, customConfig) {
-    const config = provider === "custom-ai" ? { ...this.settings().customApi, ...customConfig, apiKey: apiKey.trim() } : { apiKey: apiKey.trim() };
+  apiTestIdentity(provider, apiKey, groqConfig) {
+    const config = provider === "groq" ? { ...this.settings().groqApi, ...groqConfig, apiKey: apiKey.trim() } : { apiKey: apiKey.trim() };
     return createHash("sha256").update(JSON.stringify({ provider, config })).digest("hex");
   }
   async waitForApiTestWindow(identity) {
@@ -415,13 +393,13 @@ class Translator {
       if (oldest) this.apiTestLastRequestAt.delete(oldest);
     }
   }
-  async requestApiTestWithRateLimitRetry(provider, apiKey, sample, customConfig) {
+  async requestApiTestWithRateLimitRetry(provider, apiKey, sample, groqConfig) {
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
         if (provider === "deepl") await this.translateWithDeepL(sample, "zh-CN", apiKey.trim());
-        else if (provider === "custom-ai") {
-          const config = { ...this.settings().customApi, ...customConfig, apiKey: apiKey.trim() };
-          await this.translateWithCustomApi(sample, "zh-CN", config);
+        else if (provider === "groq") {
+          const config = { ...this.settings().groqApi, ...groqConfig, apiKey: apiKey.trim() };
+          await this.translateWithGroq(sample, "zh-CN", config);
         }
         return;
       } catch (error) {
@@ -537,9 +515,9 @@ class Translator {
         void this.recordApiUsage("deepl", text).catch(() => void 0);
         return translated2;
       }
-      const translated = await this.translateWithCustomApi(text, target, settings.customApi, source);
-      this.apiFailureCounts.delete("custom-ai");
-      void this.recordApiUsage("custom-ai", text).catch(() => void 0);
+      const translated = await this.translateWithGroq(text, target, settings.groqApi, source);
+      this.apiFailureCounts.delete("groq");
+      void this.recordApiUsage("groq", text).catch(() => void 0);
       return translated;
     } catch (error) {
       this.recordApiFailure(provider);
@@ -557,7 +535,7 @@ class Translator {
   }
   providerName(provider) {
     if (provider === "deepl") return "DeepL";
-    if (provider === "custom-ai") return "自定义 AI";
+    if (provider === "groq") return "Groq";
     return provider;
   }
   async translateWithDeepL(text, target, apiKey, source = "auto") {
@@ -595,86 +573,44 @@ class Translator {
       clearTimeout(timeout);
     }
   }
-  async translateWithCustomApi(text, target, config, source = "auto") {
+  async translateWithGroq(text, target, config, source = "auto") {
     const apiKey = config.apiKey.trim();
-    const baseUrl = config.baseUrl.trim();
     const model = config.model.trim();
-    if (!apiKey) throw new Error("API Key 未配置。");
-    if (!baseUrl) throw new Error("API 地址未配置。");
-    if (!model) throw new Error("模型名称未配置。");
-    const customHeaders = this.parseCustomHeaders(config.customHeaders);
+    if (!apiKey) throw new Error("Groq API Key 未配置。");
+    if (!model) throw new Error("Groq 模型名称未配置。");
     const prompt = this.translationPrompt(target, source);
     const controller = new AbortController();
     const timeoutMs = Math.min(120, Math.max(5, Math.round(config.timeoutSeconds || 30))) * 1e3;
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      let endpoint = "";
-      let headers = {
-        authorization: `Bearer ${apiKey}`,
-        "content-type": "application/json",
-        accept: "application/json"
-      };
-      let body;
-      if (config.protocol === "openai-responses") {
-        endpoint = this.apiEndpoint(baseUrl, "/responses");
-        body = {
-          model,
-          input: [
-            { role: "developer", content: prompt },
-            { role: "user", content: text }
-          ]
-        };
-      } else if (config.protocol === "anthropic") {
-        endpoint = this.apiEndpoint(baseUrl, "/messages");
-        headers = {
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
+      const response = await fetch(groqChatCompletionsEndpoint, {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          authorization: `Bearer ${apiKey}`,
           "content-type": "application/json",
           accept: "application/json"
-        };
-        body = {
-          model,
-          max_tokens: 4096,
-          system: prompt,
-          messages: [{ role: "user", content: text }]
-        };
-      } else if (config.protocol === "gemini") {
-        endpoint = this.geminiEndpoint(baseUrl, model);
-        headers = {
-          "x-goog-api-key": apiKey,
-          "content-type": "application/json",
-          accept: "application/json"
-        };
-        body = {
-          systemInstruction: { parts: [{ text: prompt }] },
-          contents: [{ role: "user", parts: [{ text }] }]
-        };
-      } else {
-        endpoint = this.apiEndpoint(baseUrl, "/chat/completions");
-        body = {
+        },
+        body: JSON.stringify({
           model,
           messages: [
             { role: "system", content: prompt },
             { role: "user", content: text }
-          ]
-        };
-      }
-      const response = await fetch(endpoint, {
-        method: "POST",
-        signal: controller.signal,
-        headers: { ...headers, ...customHeaders },
-        body: JSON.stringify(body)
+          ],
+          temperature: 0
+        })
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
         throw new ApiRequestError(
-          this.apiErrorMessage(payload) || `自定义 API 请求失败：${response.status}`,
+          this.apiErrorMessage(payload) || `Groq API 请求失败：${response.status}`,
           response.status,
           parseRetryAfterMs(response.headers.get("retry-after"))
         );
       }
-      const translated = this.extractCustomApiText(payload, config.protocol);
-      if (!translated) throw new Error("自定义 API 返回了空结果。请检查协议和模型设置。");
+      const content = payload.choices?.[0]?.message?.content;
+      const translated = typeof content === "string" ? content.trim() : Array.isArray(content) ? content.map((part) => part && typeof part === "object" && "text" in part && typeof part.text === "string" ? part.text : "").join("").trim() : "";
+      if (!translated) throw new Error("Groq API 返回了空结果。请检查模型设置。");
       return translated;
     } finally {
       clearTimeout(timeout);
@@ -683,37 +619,6 @@ class Translator {
   translationPrompt(target, source) {
     return source === "auto" ? `You are a translation engine. Translate the user's text into ${target}. Return only the translation. Preserve formatting, URLs, names, Emoji, and line breaks.` : `You are a translation engine. The source language is ${source}. Translate the user's text into ${target}. Return only the translation. Preserve formatting, URLs, names, Emoji, and line breaks. Do not change the translation direction.`;
   }
-  parseCustomHeaders(raw) {
-    if (!raw.trim()) return {};
-    let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      throw new Error("自定义请求头必须是有效的 JSON 对象。");
-    }
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("自定义请求头必须是 JSON 对象。");
-    const headers = {};
-    for (const [name, value] of Object.entries(parsed)) {
-      if (!name.trim() || /[\r\n]/.test(name) || typeof value !== "string" || /[\r\n]/.test(value)) {
-        throw new Error("自定义请求头的名称和值必须是单行字符串。");
-      }
-      const normalizedName = name.trim().toLowerCase();
-      if (normalizedName === "host" || normalizedName === "content-length") continue;
-      headers[normalizedName] = value;
-    }
-    return headers;
-  }
-  apiEndpoint(baseUrl, suffix) {
-    const clean = baseUrl.replace(/\/+$/, "");
-    if (clean.toLowerCase().endsWith(suffix.toLowerCase())) return clean;
-    return `${clean}${suffix}`;
-  }
-  geminiEndpoint(baseUrl, model) {
-    const clean = baseUrl.replace(/\/+$/, "");
-    if (clean.toLowerCase().includes(":generatecontent")) return clean;
-    const modelName = model.replace(/^models\//i, "");
-    return `${clean}/models/${encodeURIComponent(modelName)}:generateContent`;
-  }
   apiErrorMessage(payload) {
     if (!payload || typeof payload !== "object") return "";
     const value = payload;
@@ -721,31 +626,9 @@ class Translator {
     if (value.error && typeof value.error === "object" && typeof value.error.message === "string") return value.error.message;
     return typeof value.message === "string" ? value.message : "";
   }
-  extractCustomApiText(payload, protocol) {
-    if (!payload || typeof payload !== "object") return "";
-    const value = payload;
-    if (protocol === "openai-responses") {
-      if (typeof value.output_text === "string") return value.output_text.trim();
-      return value.output?.flatMap((item) => item.content || []).map((item) => typeof item.text === "string" ? item.text : "").join("").trim() || "";
-    }
-    if (protocol === "anthropic") {
-      return value.content?.map((item) => item.type === "text" && typeof item.text === "string" ? item.text : "").join("").trim() || "";
-    }
-    if (protocol === "gemini") {
-      return value.candidates?.[0]?.content?.parts?.map((part) => typeof part.text === "string" ? part.text : "").join("").trim() || "";
-    }
-    const content = value.choices?.[0]?.message?.content;
-    if (typeof content === "string") return content.trim();
-    if (Array.isArray(content)) {
-      return content.map((part) => part && typeof part === "object" && "text" in part && typeof part.text === "string" ? part.text : "").join("").trim();
-    }
-    return "";
-  }
   providerCacheIdentity(settings) {
-    if (settings.translationProvider !== "custom-ai") return settings.translationProvider;
-    const config = settings.customApi;
-    if (config.preset === "kitool" && config.protocol === "openai-responses" && config.baseUrl.trim().replace(/\/+$/, "").toLowerCase() === "https://kitool.ai/v1" && config.model.trim() === "gpt-5.5") return "kitool";
-    return `custom-ai:${config.protocol}:${config.baseUrl.trim().replace(/\/+$/, "").toLowerCase()}:${config.model.trim()}`;
+    if (settings.translationProvider !== "groq") return settings.translationProvider;
+    return `groq:${settings.groqApi.model.trim()}`;
   }
   deepLTarget(target) {
     if (target === "zh-CN") return "ZH";
@@ -6259,7 +6142,7 @@ async function createWindow() {
       emit({ type: "state-updated", state });
     },
     (provider) => {
-      const providerName = provider === "deepl" ? "DeepL" : "自定义 AI";
+      const providerName = provider === "deepl" ? "DeepL" : "Groq";
       emit({ type: "error", message: `${providerName} API 连续翻译失败 4 次，秘钥额度不足，请检查或更换秘钥。` });
     },
     new TranslationHistory(join(app.getPath("userData"), "translation-history.jsonl"))
@@ -6510,7 +6393,7 @@ ipcMain.on("workspace-notice:set", (_event, message, bounds, progress) => {
   updateWorkspaceNoticeOverlay();
 });
 ipcMain.handle("translate:text", (_event, text, target, source) => translator.translate(text, target, source));
-ipcMain.handle("translation:test-api", (_event, provider, apiKey, customConfig) => translator.testApi(provider, String(apiKey || ""), customConfig));
+ipcMain.handle("translation:test-api", (_event, provider, apiKey, groqConfig) => translator.testApi(provider, String(apiKey || ""), groqConfig));
 ipcMain.handle("whatsapp:send-translated", (_event, accountId, text) => webViews.sendWhatsAppTranslated(accountId, text));
 ipcMain.on("whatsapp:database-error", (event, payload) => {
   const accountId = String(payload?.accountId || "");

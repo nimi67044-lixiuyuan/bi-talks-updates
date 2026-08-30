@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.6-update-complete-message-20260829",
+  "patchId": "4.0.6-groq-api-20260830",
   "baseVersions": [
     "4.0.6"
   ],
   "targetVersion": "4.0.6",
-  "publishedAt": "2026-08-30T02:00:14.579Z",
-  "description": "更新安装完成后仅显示",
+  "publishedAt": "2026-08-30T15:31:01.718Z",
+  "description": "Replace Custom AI API with an independent Groq API translation channel",
   "files": [
     {
       "path": "build/icons/app.png",
@@ -30,14 +30,14 @@
     {
       "path": "out/main/index.js",
       "url": "files/out/main/index.js",
-      "sha256": "bedd2a518f2e84f1eee295b91f6086e671d7f3c630d7d6035dace4da97ca0996",
-      "size": 305461
+      "sha256": "4cd5f88d88ed9fda8f3b7d740bcf9ff6fefe3dc1383b3651f58243a2e69fa858",
+      "size": 299707
     },
     {
       "path": "out/preload/index.cjs",
       "url": "files/out/preload/index.cjs",
-      "sha256": "4a2bca08ccd0c90410378fcea7209960a4b1770aa6d37440caa8df42e486c18e",
-      "size": 3321
+      "sha256": "352299e391677891d5815aae1224013403a67f8ffa8b31d68df5e5251ed9568e",
+      "size": 3317
     },
     {
       "path": "out/preload/service.cjs",
@@ -46,10 +46,10 @@
       "size": 28135
     },
     {
-      "path": "out/renderer/assets/index-BzOTvv0n.js",
-      "url": "files/out/renderer/assets/index-BzOTvv0n.js",
-      "sha256": "e7a6d516295441cf03fe7e4fb6d7742357eb4e5d60040f224cd0f64c9d746bf9",
-      "size": 783000
+      "path": "out/renderer/assets/index-BtJ7Wyr_.js",
+      "url": "files/out/renderer/assets/index-BtJ7Wyr_.js",
+      "sha256": "75d211c083a406de4897e15559226700e0040bf40ba3ba892f25b4e008b1775e",
+      "size": 778443
     },
     {
       "path": "out/renderer/assets/index-jMWQudkV.css",
@@ -66,7 +66,7 @@
     {
       "path": "out/renderer/index.html",
       "url": "files/out/renderer/index.html",
-      "sha256": "541f17203b47b979c9e807a1ee47806e81fb7ba22cc9885879e6a87eff6f0ccf",
+      "sha256": "451ac76b801a4feda81e9725fc665e179d68abc841d2dc177dc29e2218802727",
       "size": 679
     },
     {

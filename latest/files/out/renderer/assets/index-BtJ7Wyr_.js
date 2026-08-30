@@ -16648,21 +16648,6 @@ function isPredominantlyChinese(text) {
 function bilingualTranslationTarget(text) {
   return isPredominantlyChinese(text) ? "en" : "zh";
 }
-const customApiPresets = [
-  { id: "custom", label: "完全自定义", protocol: "openai-chat", baseUrl: "", model: "" },
-  { id: "openai", label: "OpenAI", protocol: "openai-responses", baseUrl: "https://api.openai.com/v1", model: "gpt-4.1-mini" },
-  { id: "deepseek", label: "DeepSeek", protocol: "openai-chat", baseUrl: "https://api.deepseek.com/v1", model: "deepseek-chat" },
-  { id: "openrouter", label: "OpenRouter", protocol: "openai-chat", baseUrl: "https://openrouter.ai/api/v1", model: "openai/gpt-4o-mini" },
-  { id: "groq", label: "Groq", protocol: "openai-chat", baseUrl: "https://api.groq.com/openai/v1", model: "llama-3.3-70b-versatile" },
-  { id: "siliconflow", label: "硅基流动", protocol: "openai-chat", baseUrl: "https://api.siliconflow.cn/v1", model: "Qwen/Qwen2.5-7B-Instruct" },
-  { id: "moonshot", label: "Moonshot", protocol: "openai-chat", baseUrl: "https://api.moonshot.cn/v1", model: "moonshot-v1-8k" },
-  { id: "anthropic", label: "Anthropic Claude", protocol: "anthropic", baseUrl: "https://api.anthropic.com/v1", model: "claude-3-5-haiku-latest" },
-  { id: "gemini", label: "Google Gemini", protocol: "gemini", baseUrl: "https://generativelanguage.googleapis.com/v1beta", model: "gemini-2.0-flash" },
-  { id: "kitool", label: "Kitool.ai（兼容预设）", protocol: "openai-responses", baseUrl: "https://kitool.ai/v1", model: "gpt-5.5" }
-];
-function customApiPreset(id) {
-  return customApiPresets.find((preset) => preset.id === id);
-}
 const signalIcon = "data:image/svg+xml,%3csvg%20width='16'%20height='16'%20viewBox='0%200%2016%2016'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M0.0618938%207H1.07089C1.22013%205.95667%201.59943%204.98756%202.15575%204.14571L1.43586%203.42581C0.711022%204.46404%200.226214%205.68225%200.0618938%207Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M2.33812%202.34818L3.04523%203.05528C3.60952%202.48985%204.26999%202.02042%205%201.67363L5%200.581517C3.99507%200.988303%203.09161%201.59336%202.33812%202.34818Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M6%200.252035L6%201.28988C6.63371%201.10128%207.30503%201%208%201C8.33952%201%208.6734%201.02417%209%201.07089V0.0618938C8.67241%200.0210433%208.33866%200%208%200C7.3094%200%206.63924%200.087506%206%200.252035Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M10%200.252035V1.28988C10.899%201.55744%2011.7223%202.00074%2012.4301%202.57994L13.1403%201.86974C12.2407%201.11456%2011.1723%200.55377%2010%200.252035Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M14.1303%202.85969L13.4201%203.56989C13.9993%204.27768%2014.4426%205.101%2014.7101%206L15.748%206C15.4462%204.82768%2014.8854%203.75936%2014.1303%202.85969Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M15.9381%207L14.9291%207C14.9758%207.3266%2015%207.66048%2015%208C15%208.69497%2014.8987%209.36629%2014.7101%2010L15.748%2010C15.9125%209.36076%2016%208.6906%2016%208C16%207.66134%2015.979%207.32759%2015.9381%207Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M15.4185%2011L14.3264%2011C13.9796%2011.73%2013.5102%2012.3905%2012.9447%2012.9548L13.6518%2013.6619C14.4066%2012.9084%2015.0117%2012.0049%2015.4185%2011Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M12.5742%2014.5641L11.8543%2013.8442C11.0124%2014.4006%2010.0433%2014.7799%209%2014.9291V15.9381C10.3177%2015.7738%2011.536%2015.289%2012.5742%2014.5641Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M8%2016V15C6.92554%2015%205.90876%2014.7583%205%2014.3265L5%2015.4183C5.92687%2015.7935%206.93978%2016%208%2016Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M4%2015.7822L4%2014.7803L1.31716%2014.948C1.16703%2014.9573%201.04267%2014.833%201.05205%2014.6828L1.21973%2012H0.217779L0.0539996%2014.6205C0.00708404%2015.3711%200.628888%2015.9929%201.37954%2015.946L4%2015.7822Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M0.581662%2011H1.6735C1.24175%2010.0912%201%209.07446%201%208H0C0%209.06022%200.206493%2010.0731%200.581662%2011Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M8.00004%2014C11.3137%2014%2014%2011.3137%2014%208C14%204.68631%2011.3137%202.00003%208.00004%202.00003C4.68634%202.00003%202.00006%204.68631%202.00006%208C2.00006%208.81893%202.16412%209.59954%202.46118%2010.3108L2.00003%2014L5.68926%2013.5388C6.40048%2013.8359%207.1811%2014%208.00004%2014Z'%20fill='%233B45FD'%3e%3c/path%3e%3cstyle%3e@media%20(prefers-color-scheme:%20light)%20{%20path%20{%20fill:%233B45FD;%20}%20}%20@media%20(prefers-color-scheme:%20dark)%20{%20path%20{%20fill:%23FFFFFF;%20}%20}%20%3c/style%3e%3c/svg%3e";
 const railWidth = 57;
 const resizeHandleWidth = 3;
@@ -18351,13 +18336,13 @@ function ConfirmCloseApplication({ onCancel, onConfirm }) {
 function SettingsModal({ state, save, onClose, onNotice }) {
   const [themeMode, setThemeMode] = reactExports.useState(state.settings.themeMode);
   const [translationProvider, setTranslationProvider] = reactExports.useState(state.settings.translationProvider);
-  const [customApi, setCustomApi] = reactExports.useState({ ...state.settings.customApi });
+  const [groqApi, setGroqApi] = reactExports.useState({ ...state.settings.groqApi });
   const [deeplApiKey, setDeeplApiKey] = reactExports.useState(state.settings.deeplApiKey || "");
   const [apiTestMessage, setApiTestMessage] = reactExports.useState("");
   const [testingApi, setTestingApi] = reactExports.useState(false);
-  const apiUsage = translationProvider === "custom-ai" ? state.settings.apiUsage.customAi : state.settings.apiUsage.deepl;
-  const apiKey = translationProvider === "deepl" ? deeplApiKey : customApi.apiKey;
-  const apiStatusTitle = translationProvider === "deepl" ? "DeepL API 状态与用量" : "自定义 AI API 状态与用量";
+  const apiUsage = translationProvider === "groq" ? state.settings.apiUsage.groq : state.settings.apiUsage.deepl;
+  const apiKey = translationProvider === "deepl" ? deeplApiKey : groqApi.apiKey;
+  const apiStatusTitle = translationProvider === "deepl" ? "DeepL API 状态与用量" : "Groq API 状态与用量";
   const numberFormat = new Intl.NumberFormat("zh-CN");
   const persistSettings = async (overrides = {}) => {
     const latestState = await window.desktop.getState();
@@ -18365,13 +18350,11 @@ function SettingsModal({ state, save, onClose, onNotice }) {
       ...latestState.settings,
       themeMode,
       translationProvider,
-      customApi: {
-        ...customApi,
-        baseUrl: customApi.baseUrl.trim(),
-        apiKey: customApi.apiKey.trim(),
-        model: customApi.model.trim(),
-        timeoutSeconds: Math.min(120, Math.max(5, Math.round(customApi.timeoutSeconds || 30))),
-        customHeaders: customApi.customHeaders.trim()
+      groqApi: {
+        ...groqApi,
+        apiKey: groqApi.apiKey.trim(),
+        model: groqApi.model.trim(),
+        timeoutSeconds: Math.min(120, Math.max(5, Math.round(groqApi.timeoutSeconds || 30)))
       },
       deeplApiKey: deeplApiKey.trim(),
       ...overrides
@@ -18395,20 +18378,8 @@ function SettingsModal({ state, save, onClose, onNotice }) {
     setTranslationProvider(provider);
     setApiTestMessage("");
   };
-  const updateCustomPreset = (presetId) => {
-    const preset = customApiPreset(presetId);
-    if (!preset) return;
-    setCustomApi((current) => ({
-      ...current,
-      preset: preset.id,
-      protocol: preset.protocol,
-      baseUrl: preset.baseUrl,
-      model: preset.model
-    }));
-    setApiTestMessage("");
-  };
-  const updateCustomApi = (key, value) => {
-    setCustomApi((current) => ({ ...current, [key]: value, ...key === "preset" ? {} : { preset: "custom" } }));
+  const updateGroqApi = (key, value) => {
+    setGroqApi((current) => ({ ...current, [key]: value }));
     setApiTestMessage("");
   };
   const testApi = async () => {
@@ -18418,7 +18389,7 @@ function SettingsModal({ state, save, onClose, onNotice }) {
       const result = await window.desktop.testTranslationApi(
         translationProvider,
         apiKey.trim(),
-        translationProvider === "custom-ai" ? customApi : void 0
+        translationProvider === "groq" ? groqApi : void 0
       );
       setApiTestMessage(result.message);
       if (result.ok) await save(await window.desktop.getState());
@@ -18450,7 +18421,7 @@ function SettingsModal({ state, save, onClose, onNotice }) {
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "settings-section", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "翻译服务" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "选择 DeepL API 或自定义 AI API 作为翻译服务。" })
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "选择 DeepL API 或 Groq API 作为翻译服务。" })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { children: [
         "翻译服务",
@@ -18461,30 +18432,23 @@ function SettingsModal({ state, save, onClose, onNotice }) {
             onChange: (event) => updateTranslationProvider(event.currentTarget.value),
             children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "deepl", children: "DeepL API" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "custom-ai", children: "自定义 AI API" })
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "groq", children: "Groq API" })
             ]
           }
         )
       ] }),
-      translationProvider === "custom-ai" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "custom-api-fields", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { children: [
-          "常用服务预设",
-          /* @__PURE__ */ jsxRuntimeExports.jsx("select", { value: customApi.preset, onChange: (event) => updateCustomPreset(event.currentTarget.value), children: customApiPresets.map((preset) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: preset.id, children: preset.label }, preset.id)) })
-        ] }),
+      translationProvider === "groq" && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "custom-api-fields", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "custom-api-grid", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { children: [
-            "API 协议",
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "select",
+            "Groq 模型",
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "input",
               {
-                value: customApi.protocol,
-                onChange: (event) => updateCustomApi("protocol", event.currentTarget.value),
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openai-chat", children: "OpenAI Chat Completions" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "openai-responses", children: "OpenAI Responses" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "anthropic", children: "Anthropic Messages" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "gemini", children: "Google Gemini" })
-                ]
+                value: groqApi.model,
+                autoComplete: "off",
+                spellCheck: false,
+                placeholder: "例如：qwen/qwen3.6-27b",
+                onChange: (event) => updateGroqApi("model", event.currentTarget.value)
               }
             )
           ] }),
@@ -18496,69 +18460,27 @@ function SettingsModal({ state, save, onClose, onNotice }) {
                 type: "number",
                 min: 5,
                 max: 120,
-                value: customApi.timeoutSeconds,
-                onChange: (event) => updateCustomApi("timeoutSeconds", Number(event.currentTarget.value))
+                value: groqApi.timeoutSeconds,
+                onChange: (event) => updateGroqApi("timeoutSeconds", Number(event.currentTarget.value))
               }
             )
           ] })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { children: [
-          "API 地址",
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "input",
-            {
-              type: "url",
-              value: customApi.baseUrl,
-              autoComplete: "off",
-              spellCheck: false,
-              placeholder: "例如：https://api.example.com/v1",
-              onChange: (event) => updateCustomApi("baseUrl", event.currentTarget.value)
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "可以填写基础地址，也可以直接填写完整的接口地址。" })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { children: [
-          "模型名称",
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "input",
-            {
-              value: customApi.model,
-              autoComplete: "off",
-              spellCheck: false,
-              placeholder: "例如：gpt-4.1-mini",
-              onChange: (event) => updateCustomApi("model", event.currentTarget.value)
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { children: [
-          "API Key",
+          "Groq API Key",
           /* @__PURE__ */ jsxRuntimeExports.jsx(
             "input",
             {
               type: "password",
-              value: customApi.apiKey,
+              value: groqApi.apiKey,
               autoComplete: "off",
               spellCheck: false,
-              placeholder: "粘贴所选服务商的 API Key",
-              onChange: (event) => updateCustomApi("apiKey", event.currentTarget.value)
+              placeholder: "粘贴 Groq API Key",
+              onChange: (event) => updateGroqApi("apiKey", event.currentTarget.value)
             }
           )
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { children: [
-          "自定义请求头（可选 JSON）",
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "textarea",
-            {
-              rows: 2,
-              value: customApi.customHeaders,
-              autoComplete: "off",
-              spellCheck: false,
-              placeholder: '例如：{"api-key":"..."}',
-              onChange: (event) => updateCustomApi("customHeaders", event.currentTarget.value)
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "用于私有兼容接口；这里的值会覆盖同名默认请求头。" })
-        ] })
+        /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: "使用 Groq 官方 Chat Completions 接口。" })
       ] }),
       translationProvider === "deepl" && /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { children: [
         "DeepL API Key",

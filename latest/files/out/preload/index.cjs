@@ -25,7 +25,7 @@ electron.contextBridge.exposeInMainWorld("desktop", {
   applyAppPatch: () => electron.ipcRenderer.invoke("app-patch:apply"),
   removeAccount: (account) => electron.ipcRenderer.invoke("account:remove", account),
   translate: (text, target, source) => electron.ipcRenderer.invoke("translate:text", text, target, source),
-  testTranslationApi: (provider, apiKey, customConfig) => electron.ipcRenderer.invoke("translation:test-api", provider, apiKey, customConfig),
+  testTranslationApi: (provider, apiKey, groqConfig) => electron.ipcRenderer.invoke("translation:test-api", provider, apiKey, groqConfig),
   setNativeAppearanceEffects: (enabled) => electron.ipcRenderer.invoke("appearance:native-effects", enabled),
   openExternal: (url) => electron.ipcRenderer.invoke("external:open", url),
   onEvent: (listener) => {
