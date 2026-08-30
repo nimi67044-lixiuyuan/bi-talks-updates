@@ -16762,10 +16762,24 @@ function UpdateCheckButton({
   const [availablePatch, setAvailablePatch] = reactExports.useState();
   const [installing, setInstalling] = reactExports.useState(false);
   const [installMessage, setInstallMessage] = reactExports.useState("");
+  const [downloadProgress, setDownloadProgress] = reactExports.useState();
+  reactExports.useEffect(() => window.desktop.onEvent((event) => {
+    if (event.type !== "app-patch" || !["downloading", "ready", "applying", "error"].includes(event.status)) return;
+    setInstallMessage(event.message);
+    if (event.status === "downloading") {
+      setDownloadProgress(typeof event.progress === "number" ? Math.min(100, Math.max(0, event.progress)) : 0);
+    } else if (event.status === "ready" || event.status === "applying") {
+      setDownloadProgress(100);
+    } else {
+      setDownloadProgress(void 0);
+      setInstalling(false);
+    }
+  }), []);
   const closeConfirmation = () => {
     if (installing) return;
     setAvailablePatch(void 0);
     setInstallMessage("");
+    setDownloadProgress(void 0);
     onDialogOpenChange(false);
   };
   const check = async () => {
@@ -16777,6 +16791,7 @@ function UpdateCheckButton({
         onDialogOpenChange(true);
         setAvailablePatch(result.patch);
         setInstallMessage("");
+        setDownloadProgress(void 0);
       } else {
         onNotice(result.message);
         setAvailablePatch(void 0);
@@ -16792,26 +16807,28 @@ function UpdateCheckButton({
   const install = async () => {
     if (installing || !availablePatch) return;
     setInstalling(true);
-    setInstallMessage("正在下载并验证补丁…");
+    setDownloadProgress(0);
+    setInstallMessage("正在下载在线补丁…");
     try {
       const downloaded = await window.desktop.downloadAppPatch();
-      onNotice(downloaded.message);
       if (!downloaded.ready) {
         setInstallMessage(downloaded.message);
+        setDownloadProgress(void 0);
         setInstalling(false);
         return;
       }
+      setDownloadProgress(100);
       setInstallMessage("补丁验证通过，正在启动安装助手…");
       const applied = await window.desktop.applyAppPatch();
-      onNotice(applied.message);
       if (!applied.scheduled) {
         setInstallMessage(applied.message);
+        setDownloadProgress(void 0);
         setInstalling(false);
       }
     } catch (error) {
       const message = `安装在线补丁失败：${error instanceof Error ? error.message : String(error)}`;
       setInstallMessage(message);
-      onNotice(message);
+      setDownloadProgress(void 0);
       setInstalling(false);
     }
   };
@@ -16860,7 +16877,16 @@ function UpdateCheckButton({
         /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "更新说明" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: availablePatch.description })
       ] }) }),
-      installMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "notice", children: installMessage }),
+      installMessage && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "patch-install-status", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "patch-install-copy", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: installMessage }),
+          downloadProgress !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("b", { children: [
+            Math.round(downloadProgress),
+            "%"
+          ] })
+        ] }),
+        downloadProgress !== void 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "patch-progress-track", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": Math.round(downloadProgress), children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { width: `${downloadProgress}%` } }) })
+      ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "modal-actions", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "ghost-button", type: "button", disabled: installing, onClick: closeConfirmation, children: "取消" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "primary-button", type: "button", disabled: installing, onClick: () => void install(), children: installing ? "正在更新…" : "确认更新" })
@@ -17152,12 +17178,12 @@ function App() {
         if (event.accountId) setStatuses((items) => ({ ...items, [event.accountId]: message }));
       }
       if (event.type === "app-patch") {
-        if (event.status === "available") {
+        if (event.status === "available" || event.status === "downloading" || event.status === "ready" || event.status === "error") {
           setNotice(void 0);
           setNoticeProgress(void 0);
         } else {
           setNotice(event.message);
-          setNoticeProgress(event.status === "downloading" && typeof event.progress === "number" ? Math.min(100, Math.max(0, event.progress)) : void 0);
+          setNoticeProgress(void 0);
         }
       }
       if (event.type === "signal-translation" && event.status === "error") {

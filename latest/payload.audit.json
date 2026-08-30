@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.7-hide-update-available-notice-20260830",
+  "patchId": "4.0.7-modal-download-progress-20260830",
   "baseVersions": [
     "4.0.7"
   ],
   "targetVersion": "4.0.7",
-  "publishedAt": "2026-08-30T22:36:57.037Z",
-  "description": "Show the update confirmation dialog without a duplicate patch-available error-style notice",
+  "publishedAt": "2026-08-30T22:53:51.499Z",
+  "description": "Show online patch download progress inside the confirmation dialog and suppress duplicate external download notices",
   "files": [
     {
       "path": "build/icons/app.png",
@@ -46,16 +46,16 @@
       "size": 28135
     },
     {
-      "path": "out/renderer/assets/index-B8eRBbDn.js",
-      "url": "files/out/renderer/assets/index-B8eRBbDn.js",
-      "sha256": "0f9a72983fcb2c4b4ce9a968f12e32649337db4dcd8674519af50db66110437b",
-      "size": 779136
+      "path": "out/renderer/assets/index-4i1yEsAP.css",
+      "url": "files/out/renderer/assets/index-4i1yEsAP.css",
+      "sha256": "50e4fa880676e4e440a08fddac038328b4efb2b2c257fa1f7fb8a5d898a6aa38",
+      "size": 32270
     },
     {
-      "path": "out/renderer/assets/index-kznEQ2rA.css",
-      "url": "files/out/renderer/assets/index-kznEQ2rA.css",
-      "sha256": "2d450ea70fd80b68fc2a430f2caf2347fd85322fa0c1d9b1406d7183c5d95078",
-      "size": 31664
+      "path": "out/renderer/assets/index-B3HgBlN3.js",
+      "url": "files/out/renderer/assets/index-B3HgBlN3.js",
+      "sha256": "4a2ffd9992c7ddc598778afa528f3564c0179cd3b8b6f1cd2ae35a0844fe962b",
+      "size": 780622
     },
     {
       "path": "out/renderer/favicon.png",
@@ -66,7 +66,7 @@
     {
       "path": "out/renderer/index.html",
       "url": "files/out/renderer/index.html",
-      "sha256": "7a41f76b200a54ff68950f410f3768bea869ab057e16d09bbc07d3c01863bd35",
+      "sha256": "55e03598d7b3a01b72fbebb6104f8767de9c05b4db468eac721e98d346950d7a",
       "size": 670
     },
     {
