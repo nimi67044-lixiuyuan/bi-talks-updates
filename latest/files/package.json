@@ -13,7 +13,7 @@
     "dev": "node scripts/dev-with-icon.mjs",
     "build": "electron-vite build",
     "typecheck": "tsc --noEmit",
-    "test:core": "node --experimental-strip-types --test src/main/signalUpdateUtils.test.mjs src/main/stateSecrets.test.mjs src/main/runtimeLog.test.mjs src/main/appPatchUtils.test.mjs",
+    "test:core": "node --experimental-strip-types --test src/main/signalUpdateUtils.test.mjs src/main/stateSecrets.test.mjs src/main/runtimeLog.test.mjs src/main/appPatchUtils.test.mjs src/main/translationUsage.test.mjs",
     "patch:keygen": "node scripts/create-patch-signing-key.mjs",
     "patch:build": "node scripts/build-app-patch.mjs",
     "patch:verify": "node --experimental-strip-types scripts/verify-app-patch.mjs",

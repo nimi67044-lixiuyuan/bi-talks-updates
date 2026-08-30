@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.6-reset-api-usage-20260830",
+  "patchId": "4.0.6-official-api-usage-20260830",
   "baseVersions": [
     "4.0.6"
   ],
   "targetVersion": "4.0.6",
-  "publishedAt": "2026-08-30T15:57:27.694Z",
-  "description": "Add a cumulative API character reset button",
+  "publishedAt": "2026-08-30T16:20:54.855Z",
+  "description": "Use official DeepL character and Groq token accounting with automatic reset when API keys change",
   "files": [
     {
       "path": "build/icons/app.png",
@@ -30,8 +30,8 @@
     {
       "path": "out/main/index.js",
       "url": "files/out/main/index.js",
-      "sha256": "4cd5f88d88ed9fda8f3b7d740bcf9ff6fefe3dc1383b3651f58243a2e69fa858",
-      "size": 299707
+      "sha256": "7eb2b51824cf545bd3e85a8861683d9c71a77751c9c01e266f22b73d54100008",
+      "size": 303314
     },
     {
       "path": "out/preload/index.cjs",
@@ -46,10 +46,10 @@
       "size": 28135
     },
     {
-      "path": "out/renderer/assets/index-BQsAeh9m.js",
-      "url": "files/out/renderer/assets/index-BQsAeh9m.js",
-      "sha256": "b7f6e7c2db779b24c521f1b55ec6cd1bdb244f2cee48d082114aba3a1d61b37e",
-      "size": 780347
+      "path": "out/renderer/assets/index-DfhAF4Bw.js",
+      "url": "files/out/renderer/assets/index-DfhAF4Bw.js",
+      "sha256": "9dded3d9f098646fa89639a1655893b617c79e4024a5c8120c69c1fccd4abe45",
+      "size": 782859
     },
     {
       "path": "out/renderer/assets/index-EwOq8PJB.css",
@@ -66,14 +66,14 @@
     {
       "path": "out/renderer/index.html",
       "url": "files/out/renderer/index.html",
-      "sha256": "8e98464163a448b4eada72283e80af8c9705677e7b51bf2927e56a7da0438461",
+      "sha256": "a583b91b1ed91d9f4906601e5789af107ecfe0cba7af6489c82ea0d4fb2e4633",
       "size": 679
     },
     {
       "path": "package.json",
       "url": "files/package.json",
-      "sha256": "542c1e159f5bf0f77966604c3278f47385d67caf007e289750d9619ce4b939db",
-      "size": 3344
+      "sha256": "320243042c7723711a51bd93329b1a52e602008bb8ffb927f102407a7a5e7e2c",
+      "size": 3379
     }
   ],
   "remove": []

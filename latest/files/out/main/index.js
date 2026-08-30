@@ -63,26 +63,75 @@ function protectPersistedSecrets(input, protect) {
 function revealPersistedSecrets(input, reveal) {
   return transformPersistedSecrets(input, (value) => decodeProtectedSecret(value, reveal));
 }
-const translationColors = /* @__PURE__ */ new Set(["#ff4d4f", "#fa8c16", "#d8ff00", "#22c55e", "#06b6d4", "#3b82f6", "#a855f7"]);
+const maximumUsage = Number.MAX_SAFE_INTEGER;
 function localDayKey(date = /* @__PURE__ */ new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
+function apiKeyFingerprint(apiKey) {
+  const normalized = apiKey.trim();
+  return normalized ? createHash("sha256").update(normalized).digest("hex") : "";
+}
+function unicodeCharacterCount(text) {
+  return Array.from(text).length;
+}
+function usageNumber(value) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return 0;
+  return Math.min(maximumUsage, Math.floor(value));
+}
 function emptyApiUsage(day = localDayKey()) {
-  return { totalCharacters: 0, dailyCharacters: 0, day };
+  return {
+    totalCharacters: 0,
+    dailyCharacters: 0,
+    totalInputTokens: 0,
+    dailyInputTokens: 0,
+    totalOutputTokens: 0,
+    dailyOutputTokens: 0,
+    totalTokens: 0,
+    dailyTokens: 0,
+    day
+  };
 }
 function normalizeApiUsage(value, today = localDayKey()) {
   const source = value && typeof value === "object" ? value : {};
-  const totalCharacters = clampNumber(source.totalCharacters, 0, Number.MAX_SAFE_INTEGER, 0);
   const isToday = source.day === today;
   return {
-    totalCharacters,
-    dailyCharacters: isToday ? clampNumber(source.dailyCharacters, 0, Number.MAX_SAFE_INTEGER, 0) : 0,
+    totalCharacters: usageNumber(source.totalCharacters),
+    dailyCharacters: isToday ? usageNumber(source.dailyCharacters) : 0,
+    totalInputTokens: usageNumber(source.totalInputTokens),
+    dailyInputTokens: isToday ? usageNumber(source.dailyInputTokens) : 0,
+    totalOutputTokens: usageNumber(source.totalOutputTokens),
+    dailyOutputTokens: isToday ? usageNumber(source.dailyOutputTokens) : 0,
+    totalTokens: usageNumber(source.totalTokens),
+    dailyTokens: isToday ? usageNumber(source.dailyTokens) : 0,
     day: today
   };
 }
+function addUsage(current, increment) {
+  return Math.min(maximumUsage, current + increment);
+}
+function addApiUsage(value, increment, today = localDayKey()) {
+  const usage = normalizeApiUsage(value, today);
+  const characters = usageNumber(increment.characters);
+  const inputTokens = usageNumber(increment.inputTokens);
+  const outputTokens = usageNumber(increment.outputTokens);
+  const reportedTotalTokens = usageNumber(increment.totalTokens);
+  const totalTokens = reportedTotalTokens || Math.min(maximumUsage, inputTokens + outputTokens);
+  return {
+    totalCharacters: addUsage(usage.totalCharacters, characters),
+    dailyCharacters: addUsage(usage.dailyCharacters, characters),
+    totalInputTokens: addUsage(usage.totalInputTokens, inputTokens),
+    dailyInputTokens: addUsage(usage.dailyInputTokens, inputTokens),
+    totalOutputTokens: addUsage(usage.totalOutputTokens, outputTokens),
+    dailyOutputTokens: addUsage(usage.dailyOutputTokens, outputTokens),
+    totalTokens: addUsage(usage.totalTokens, totalTokens),
+    dailyTokens: addUsage(usage.dailyTokens, totalTokens),
+    day: today
+  };
+}
+const translationColors = /* @__PURE__ */ new Set(["#ff4d4f", "#fa8c16", "#d8ff00", "#22c55e", "#06b6d4", "#3b82f6", "#a855f7"]);
 function normalizeApiUsageByProvider(value) {
   const source = value && typeof value === "object" ? value : {};
   return {
@@ -261,17 +310,13 @@ class StateStore {
   get() {
     return structuredClone(this.state);
   }
-  async recordTranslationUsage(provider, characters) {
-    if (provider !== "groq" && provider !== "deepl" || !Number.isFinite(characters) || characters <= 0) return this.get();
-    const count = Math.min(Number.MAX_SAFE_INTEGER, Math.floor(characters));
+  async recordTranslationUsage(provider, increment) {
+    if (provider !== "groq" && provider !== "deepl") return this.get();
+    const currentApiKey = provider === "groq" ? this.state.settings.groqApi.apiKey : this.state.settings.deeplApiKey || "";
+    if (!increment.keyFingerprint || increment.keyFingerprint !== apiKeyFingerprint(currentApiKey)) return this.get();
     const today = localDayKey();
     const usageKey = provider === "groq" ? "groq" : "deepl";
-    const usage = normalizeApiUsage(this.state.settings.apiUsage?.[usageKey], today);
-    const updatedUsage = {
-      totalCharacters: Math.min(Number.MAX_SAFE_INTEGER, usage.totalCharacters + count),
-      dailyCharacters: Math.min(Number.MAX_SAFE_INTEGER, usage.dailyCharacters + count),
-      day: today
-    };
+    const updatedUsage = addApiUsage(this.state.settings.apiUsage?.[usageKey], increment, today);
     await this.set({
       ...this.state,
       settings: {
@@ -285,7 +330,16 @@ class StateStore {
     return this.get();
   }
   async set(next) {
-    this.state = normalizeState(structuredClone(next));
+    const previousSettings = this.state.settings;
+    const normalized = normalizeState(structuredClone(next));
+    const today = localDayKey();
+    if (apiKeyFingerprint(previousSettings.deeplApiKey || "") !== apiKeyFingerprint(normalized.settings.deeplApiKey || "")) {
+      normalized.settings.apiUsage.deepl = emptyApiUsage(today);
+    }
+    if (apiKeyFingerprint(previousSettings.groqApi.apiKey) !== apiKeyFingerprint(normalized.settings.groqApi.apiKey)) {
+      normalized.settings.apiUsage.groq = emptyApiUsage(today);
+    }
+    this.state = normalized;
     const snapshot = this.protectForDisk(structuredClone(this.state));
     const write = this.writeQueue.then(async () => {
       await promises.mkdir(app.getPath("userData"), { recursive: true });
@@ -367,8 +421,8 @@ class Translator {
     const sample = "Bi-Talks API test";
     try {
       await this.waitForApiTestWindow(identity);
-      await this.requestApiTestWithRateLimitRetry(provider, apiKey, sample, groqConfig);
-      await this.recordApiUsage(provider, sample).catch(() => void 0);
+      const usage = await this.requestApiTestWithRateLimitRetry(provider, apiKey, sample, groqConfig);
+      await this.recordApiUsage(provider, usage).catch(() => void 0);
       return { ok: true, provider, message: `${this.providerName(provider)} API 验证成功。` };
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error);
@@ -396,12 +450,21 @@ class Translator {
   async requestApiTestWithRateLimitRetry(provider, apiKey, sample, groqConfig) {
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
-        if (provider === "deepl") await this.translateWithDeepL(sample, "zh-CN", apiKey.trim());
-        else if (provider === "groq") {
-          const config = { ...this.settings().groqApi, ...groqConfig, apiKey: apiKey.trim() };
-          await this.translateWithGroq(sample, "zh-CN", config);
+        if (provider === "deepl") {
+          await this.translateWithDeepL(sample, "zh-CN", apiKey.trim());
+          return {
+            characters: unicodeCharacterCount(sample),
+            keyFingerprint: apiKeyFingerprint(apiKey)
+          };
         }
-        return;
+        if (provider === "groq") {
+          const config = { ...this.settings().groqApi, ...groqConfig, apiKey: apiKey.trim() };
+          const result = await this.translateWithGroq(sample, "zh-CN", config);
+          return {
+            ...result.usage,
+            keyFingerprint: apiKeyFingerprint(apiKey)
+          };
+        }
       } catch (error) {
         if (!(error instanceof ApiRequestError) || error.status !== 429 || attempt > 0) throw error;
         const retryDelay = error.retryAfterMs ?? apiTestFallbackRetryDelayMs;
@@ -412,6 +475,7 @@ class Translator {
         await wait(Math.max(250, retryDelay));
       }
     }
+    throw new Error("API 测试未返回用量信息。");
   }
   async translate(text, target, source = "auto") {
     return this.translateWithSettings(text, target, source, this.settings());
@@ -510,15 +574,22 @@ class Translator {
     const provider = settings.translationProvider;
     try {
       if (provider === "deepl") {
-        const translated2 = await this.translateWithDeepL(text, target, settings.deeplApiKey || "", source);
+        const apiKey = settings.deeplApiKey || "";
+        const translated = await this.translateWithDeepL(text, target, apiKey, source);
         this.apiFailureCounts.delete("deepl");
-        void this.recordApiUsage("deepl", text).catch(() => void 0);
-        return translated2;
+        void this.recordApiUsage("deepl", {
+          characters: unicodeCharacterCount(text),
+          keyFingerprint: apiKeyFingerprint(apiKey)
+        }).catch(() => void 0);
+        return translated;
       }
-      const translated = await this.translateWithGroq(text, target, settings.groqApi, source);
+      const result = await this.translateWithGroq(text, target, settings.groqApi, source);
       this.apiFailureCounts.delete("groq");
-      void this.recordApiUsage("groq", text).catch(() => void 0);
-      return translated;
+      void this.recordApiUsage("groq", {
+        ...result.usage,
+        keyFingerprint: apiKeyFingerprint(settings.groqApi.apiKey)
+      }).catch(() => void 0);
+      return result.translated;
     } catch (error) {
       this.recordApiFailure(provider);
       throw error;
@@ -529,9 +600,9 @@ class Translator {
     this.apiFailureCounts.set(provider, failures);
     if (failures === 4) this.onApiFailure?.(provider);
   }
-  async recordApiUsage(provider, text) {
-    const characters = Array.from(text).length;
-    if (characters > 0) await this.onApiUsage?.(provider, characters);
+  async recordApiUsage(provider, increment) {
+    const amount = provider === "deepl" ? increment.characters || 0 : increment.totalTokens || (increment.inputTokens || 0) + (increment.outputTokens || 0);
+    if (amount > 0) await this.onApiUsage?.(provider, increment);
   }
   providerName(provider) {
     if (provider === "deepl") return "DeepL";
@@ -611,7 +682,14 @@ class Translator {
       const content = payload.choices?.[0]?.message?.content;
       const translated = typeof content === "string" ? content.trim() : Array.isArray(content) ? content.map((part) => part && typeof part === "object" && "text" in part && typeof part.text === "string" ? part.text : "").join("").trim() : "";
       if (!translated) throw new Error("Groq API 返回了空结果。请检查模型设置。");
-      return translated;
+      const tokenCount = (value) => typeof value === "number" && Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+      const inputTokens = tokenCount(payload.usage?.prompt_tokens ?? payload.usage?.input_tokens);
+      const outputTokens = tokenCount(payload.usage?.completion_tokens ?? payload.usage?.output_tokens);
+      const totalTokens = tokenCount(payload.usage?.total_tokens) || inputTokens + outputTokens;
+      return {
+        translated,
+        usage: { inputTokens, outputTokens, totalTokens }
+      };
     } finally {
       clearTimeout(timeout);
     }
@@ -6137,8 +6215,8 @@ async function createWindow() {
   loadPersistedUnreadCounts();
   translator = new Translator(
     () => store.get().settings,
-    async (provider, characters) => {
-      const state = await store.recordTranslationUsage(provider, characters);
+    async (provider, increment) => {
+      const state = await store.recordTranslationUsage(provider, increment);
       emit({ type: "state-updated", state });
     },
     (provider) => {

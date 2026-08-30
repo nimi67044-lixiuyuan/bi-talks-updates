@@ -16659,6 +16659,26 @@ const resizeHandleWidth = 3;
 const minAccountPanelWidth = 150;
 const maxAccountPanelWidth = 1500;
 const minWorkspaceWidth = 360;
+function currentUsageDay() {
+  const date = /* @__PURE__ */ new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+function emptyTranslationApiUsage() {
+  return {
+    totalCharacters: 0,
+    dailyCharacters: 0,
+    totalInputTokens: 0,
+    dailyInputTokens: 0,
+    totalOutputTokens: 0,
+    dailyOutputTokens: 0,
+    totalTokens: 0,
+    dailyTokens: 0,
+    day: currentUsageDay()
+  };
+}
 const platforms = {
   signal: { name: "Signal", color: "#3a76f0", iconSrc: signalIcon },
   whatsapp: { name: "WhatsApp", color: "#25d366" },
@@ -18352,17 +18372,25 @@ function SettingsModal({ state, save, onClose, onNotice }) {
   const numberFormat = new Intl.NumberFormat("zh-CN");
   const persistSettings = async (overrides = {}) => {
     const latestState = await window.desktop.getState();
+    const normalizedGroqApi = {
+      ...groqApi,
+      apiKey: groqApi.apiKey.trim(),
+      model: groqApi.model.trim(),
+      timeoutSeconds: Math.min(120, Math.max(5, Math.round(groqApi.timeoutSeconds || 30)))
+    };
+    const normalizedDeepLApiKey = deeplApiKey.trim();
+    const nextApiUsage = {
+      ...latestState.settings.apiUsage,
+      groq: latestState.settings.groqApi.apiKey.trim() === normalizedGroqApi.apiKey ? latestState.settings.apiUsage.groq : emptyTranslationApiUsage(),
+      deepl: (latestState.settings.deeplApiKey || "").trim() === normalizedDeepLApiKey ? latestState.settings.apiUsage.deepl : emptyTranslationApiUsage()
+    };
     const nextSettings = {
       ...latestState.settings,
       themeMode,
       translationProvider,
-      groqApi: {
-        ...groqApi,
-        apiKey: groqApi.apiKey.trim(),
-        model: groqApi.model.trim(),
-        timeoutSeconds: Math.min(120, Math.max(5, Math.round(groqApi.timeoutSeconds || 30)))
-      },
-      deeplApiKey: deeplApiKey.trim(),
+      groqApi: normalizedGroqApi,
+      deeplApiKey: normalizedDeepLApiKey,
+      apiUsage: nextApiUsage,
       ...overrides
     };
     applyAppearance(nextSettings.themeMode);
@@ -18413,20 +18441,26 @@ function SettingsModal({ state, save, onClose, onNotice }) {
       const latestState = await window.desktop.getState();
       const provider = translationProvider === "groq" ? "groq" : "deepl";
       const currentUsage = latestState.settings.apiUsage[provider];
+      const resetUsage = provider === "groq" ? {
+        ...currentUsage,
+        totalInputTokens: 0,
+        totalOutputTokens: 0,
+        totalTokens: 0
+      } : {
+        ...currentUsage,
+        totalCharacters: 0
+      };
       await save({
         ...latestState,
         settings: {
           ...latestState.settings,
           apiUsage: {
             ...latestState.settings.apiUsage,
-            [provider]: {
-              ...currentUsage,
-              totalCharacters: 0
-            }
+            [provider]: resetUsage
           }
         }
       });
-      onNotice(`${provider === "groq" ? "Groq" : "DeepL"} 累计字符已归零。`);
+      onNotice(`${provider === "groq" ? "Groq 累计 Token" : "DeepL 累计字符"}已归零。`);
     } catch (error) {
       setApiTestMessage(`累计归零失败：${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -18539,7 +18573,7 @@ function SettingsModal({ state, save, onClose, onNotice }) {
             /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "ghost-button api-test-button", type: "button", disabled: testingApi, onClick: () => void testApi(), children: testingApi ? "测试中…" : "测试 API" })
           ] })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "api-usage-values", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "api-usage-values", children: translationProvider === "deepl" ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
             "累计字符 ",
             /* @__PURE__ */ jsxRuntimeExports.jsx("b", { children: numberFormat.format(apiUsage.totalCharacters) })
@@ -18548,8 +18582,25 @@ function SettingsModal({ state, save, onClose, onNotice }) {
             "今日字符 ",
             /* @__PURE__ */ jsxRuntimeExports.jsx("b", { children: numberFormat.format(apiUsage.dailyCharacters) })
           ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "统计成功提交给当前服务的源文本字符；缓存命中不计入。" }),
+        ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+            "累计输入 Token ",
+            /* @__PURE__ */ jsxRuntimeExports.jsx("b", { children: numberFormat.format(apiUsage.totalInputTokens) })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+            "累计输出 Token ",
+            /* @__PURE__ */ jsxRuntimeExports.jsx("b", { children: numberFormat.format(apiUsage.totalOutputTokens) })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+            "累计总 Token ",
+            /* @__PURE__ */ jsxRuntimeExports.jsx("b", { children: numberFormat.format(apiUsage.totalTokens) })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+            "今日总 Token ",
+            /* @__PURE__ */ jsxRuntimeExports.jsx("b", { children: numberFormat.format(apiUsage.dailyTokens) })
+          ] })
+        ] }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: translationProvider === "deepl" ? "按 DeepL 官方口径统计成功请求的源文本 Unicode 字符；缓存命中不计入。" : "直接累计 Groq 成功响应返回的输入、输出和总 Token；缓存命中不计入。" }),
         apiTestMessage && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: apiTestMessage.includes("成功") ? "api-test-success" : "api-test-error", children: apiTestMessage })
       ] })
     ] }),
