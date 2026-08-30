@@ -1,13 +1,13 @@
 import { app, safeStorage, WebContentsView, shell, session, ipcMain, powerMonitor, Menu, BrowserWindow, nativeImage, Tray } from "electron";
 import { existsSync, promises, readFileSync, rmSync, createWriteStream, mkdirSync, writeFileSync, renameSync } from "node:fs";
-import { join, dirname, resolve, basename, isAbsolute, sep } from "node:path";
+import { join, dirname, resolve, basename, sep, isAbsolute } from "node:path";
 import { deflateSync } from "node:zlib";
 import { createHash, createPublicKey, verify } from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
 import { rm as rm$1, createReadStream } from "node:original-fs";
 import { get } from "node:http";
 import { get as get$1 } from "node:https";
-import { readFile, mkdir, appendFile, stat, rm, rename, writeFile, link, copyFile, readdir } from "node:fs/promises";
+import { readFile, mkdir, appendFile, stat, rm, rename, writeFile, link, copyFile, readdir, lstat } from "node:fs/promises";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 import __cjs_mod__ from "node:module";
@@ -4764,8 +4764,147 @@ function verifySignedPatchManifest(rawManifest, publicKeyPem) {
   }
   return validatePatchPayload(payloadValue);
 }
+function sha256Hex$1(data) {
+  return createHash("sha256").update(data).digest("hex");
+}
+function normalizeApplyPath(value) {
+  const path = String(value || "").replaceAll("\\", "/");
+  if (!path || path.length > 1024 || path.startsWith("/") || /^[A-Za-z]:/.test(path) || path.includes("\0") || path.split("/").some((part) => !part || part === "." || part === "..")) {
+    throw new Error(`Unsafe patch path: ${path}`);
+  }
+  const allowed = path === "package.json" || path.startsWith("out/") || path.startsWith("build/icons/");
+  if (!allowed) throw new Error(`Patch path is outside the allowed application files: ${path}`);
+  return path;
+}
 function sha256Hex(data) {
   return createHash("sha256").update(data).digest("hex");
+}
+function withinRoot$1(root, target) {
+  const normalizedRoot = resolve(root);
+  const normalizedTarget = resolve(target);
+  return normalizedTarget === normalizedRoot || normalizedTarget.startsWith(`${normalizedRoot}${sep}`);
+}
+async function pathKind(path) {
+  try {
+    const details = await lstat(path);
+    if (details.isFile()) return "file";
+    return "directory";
+  } catch (error) {
+    if (error?.code === "ENOENT") return "missing";
+    throw error;
+  }
+}
+async function copyVerified(source, destination, sha256, size) {
+  await mkdir(dirname(destination), { recursive: true });
+  await copyFile(source, destination);
+  const bytes = await readFile(destination);
+  if (bytes.length !== size || sha256Hex(bytes) !== sha256) {
+    throw new Error(`Patch file changed while being installed: ${destination}`);
+  }
+}
+async function applyPatchInProcess(plan) {
+  const applicationRoot = resolve(plan.applicationRoot);
+  const stagingFilesRoot = resolve(plan.stagingFilesRoot);
+  const backupRoot = resolve(plan.backupRoot);
+  const preparedFiles = [];
+  const preparedRemovals = [];
+  for (const file of plan.files) {
+    const path = normalizeApplyPath(file.path);
+    const relativeWindows = path.split("/").join(sep);
+    const source = resolve(stagingFilesRoot, relativeWindows);
+    const target = resolve(applicationRoot, relativeWindows);
+    const backup = resolve(backupRoot, relativeWindows);
+    if (!withinRoot$1(stagingFilesRoot, source) || !withinRoot$1(applicationRoot, target) || !withinRoot$1(backupRoot, backup)) {
+      throw new Error(`Patch file path is outside its allowed root: ${path}`);
+    }
+    if (await pathKind(source) !== "file") throw new Error(`Verified patch file is missing: ${path}`);
+    const bytes = await readFile(source);
+    if (bytes.length !== file.size || sha256Hex(bytes) !== file.sha256) {
+      throw new Error(`Patch file failed verification immediately before installation: ${path}`);
+    }
+    preparedFiles.push({ path, source, target, backup, sha256: file.sha256, size: file.size });
+  }
+  for (const removePath of plan.remove || []) {
+    const path = normalizeApplyPath(removePath);
+    if (path === "package.json") throw new Error("package.json cannot be removed by a patch.");
+    const relativeWindows = path.split("/").join(sep);
+    const target = resolve(applicationRoot, relativeWindows);
+    const backup = resolve(backupRoot, relativeWindows);
+    if (!withinRoot$1(applicationRoot, target) || !withinRoot$1(backupRoot, backup)) {
+      throw new Error(`Patch removal path is outside its allowed root: ${path}`);
+    }
+    preparedRemovals.push({ target, backup });
+  }
+  const processed = [];
+  const temporaryFiles = /* @__PURE__ */ new Set();
+  try {
+    await mkdir(backupRoot, { recursive: true });
+    for (let index = 0; index < preparedFiles.length; index += 1) {
+      const file = preparedFiles[index];
+      const currentKind = await pathKind(file.target);
+      if (currentKind === "directory") throw new Error(`Patch target is unexpectedly a directory: ${file.path}`);
+      const existed = currentKind === "file";
+      if (existed) {
+        await mkdir(dirname(file.backup), { recursive: true });
+        await copyFile(file.target, file.backup);
+      }
+      const temporaryTarget = `${file.target}.bitalks-new-${process.pid}-${Date.now()}-${index}`;
+      temporaryFiles.add(temporaryTarget);
+      await copyVerified(file.source, temporaryTarget, file.sha256, file.size);
+      await rename(temporaryTarget, file.target);
+      temporaryFiles.delete(temporaryTarget);
+      processed.push({ target: file.target, backup: file.backup, existed });
+    }
+    for (const removal of preparedRemovals) {
+      const currentKind = await pathKind(removal.target);
+      if (currentKind === "directory") throw new Error(`Patch removal target is unexpectedly a directory: ${removal.target}`);
+      if (currentKind === "missing") continue;
+      await mkdir(dirname(removal.backup), { recursive: true });
+      await copyFile(removal.target, removal.backup);
+      await rm(removal.target, { force: true });
+      processed.push({ target: removal.target, backup: removal.backup, existed: true });
+    }
+    for (const file of preparedFiles) {
+      const installed = await readFile(file.target);
+      if (installed.length !== file.size || sha256Hex(installed) !== file.sha256) {
+        throw new Error(`Installed patch file failed final verification: ${file.path}`);
+      }
+    }
+    for (const removal of preparedRemovals) {
+      if (await pathKind(removal.target) !== "missing") {
+        throw new Error(`Patch removal failed final verification: ${removal.target}`);
+      }
+    }
+    return { status: "success", message: "Patch files were verified and installed in-process." };
+  } catch (error) {
+    let rollbackFailed = false;
+    for (let index = processed.length - 1; index >= 0; index -= 1) {
+      const entry = processed[index];
+      try {
+        if (entry.existed) {
+          const backupBytes = await readFile(entry.backup);
+          const temporaryTarget = `${entry.target}.bitalks-rollback-${process.pid}-${Date.now()}-${index}`;
+          temporaryFiles.add(temporaryTarget);
+          await mkdir(dirname(temporaryTarget), { recursive: true });
+          await copyFile(entry.backup, temporaryTarget);
+          const restoredBytes = await readFile(temporaryTarget);
+          if (!restoredBytes.equals(backupBytes)) throw new Error(`Rollback verification failed: ${entry.target}`);
+          await rename(temporaryTarget, entry.target);
+          temporaryFiles.delete(temporaryTarget);
+        } else {
+          await rm(entry.target, { force: true });
+        }
+      } catch {
+        rollbackFailed = true;
+      }
+    }
+    return {
+      status: rollbackFailed ? "failed" : "rolled-back",
+      message: error instanceof Error ? error.message : String(error)
+    };
+  } finally {
+    await Promise.all([...temporaryFiles].map((path) => rm(path, { force: true }).catch(() => void 0)));
+  }
 }
 const fetchTimeoutMs = 6e4;
 function errorMessage(error) {
@@ -5043,7 +5182,7 @@ class AppPatchManager {
           this.event("downloading", `正在下载在线补丁 ${Math.round(progress)}%…`, info, progress);
         });
         if (bytes.length !== file.size) throw new Error(`补丁文件大小不匹配：${file.path}`);
-        if (sha256Hex(bytes) !== file.sha256) throw new Error(`补丁文件校验失败：${file.path}`);
+        if (sha256Hex$1(bytes) !== file.sha256) throw new Error(`补丁文件校验失败：${file.path}`);
         const normalizedPath = normalizePatchPath(file.path);
         const destination = join(stagingFilesRoot, ...normalizedPath.split("/"));
         if (!withinRoot(stagingFilesRoot, destination)) throw new Error(`补丁文件路径无效：${file.path}`);
@@ -5070,13 +5209,12 @@ class AppPatchManager {
     if (!this.options.packaged) return { scheduled: false, message: "开发模式不会替换源码；请在安装版中测试在线补丁。" };
     const downloaded = this.downloaded;
     if (!downloaded) return { scheduled: false, message: "请先下载并校验补丁。" };
-    if (!existsSync(this.options.helperPath)) return { scheduled: false, message: "补丁安装助手不存在，请先完整安装包含补丁器的新版本。" };
     try {
       for (const file of downloaded.payload.files) {
         const source = join(downloaded.stagingFilesRoot, ...normalizePatchPath(file.path).split("/"));
         if (!withinRoot(downloaded.stagingFilesRoot, source)) throw new Error(`补丁文件路径无效：${file.path}`);
         const bytes = await readFile(source);
-        if (bytes.length !== file.size || sha256Hex(bytes) !== file.sha256) throw new Error(`补丁文件二次校验失败：${file.path}`);
+        if (bytes.length !== file.size || sha256Hex$1(bytes) !== file.sha256) throw new Error(`补丁文件二次校验失败：${file.path}`);
       }
       const attemptId = `${downloaded.payload.patchId}-${Date.now()}`;
       const backupRoot = join(this.patchesRoot, "backups", attemptId);
@@ -5095,34 +5233,34 @@ class AppPatchManager {
         files: downloaded.payload.files.map((file) => ({ path: file.path, sha256: file.sha256 })),
         remove: downloaded.payload.remove || []
       });
-      const systemRoot = process.env.SystemRoot || "C:\\Windows";
-      const powershell = join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
-      if (!existsSync(powershell)) throw new Error("Windows PowerShell 补丁安装环境不存在。");
-      const child = spawn(powershell, [
-        "-NoProfile",
-        "-NonInteractive",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        this.options.helperPath,
-        "-PlanPath",
-        planPath,
-        "-ParentPid",
-        String(process.pid)
-      ], { detached: true, stdio: "ignore", windowsHide: true });
-      await new Promise((resolveSpawn, rejectSpawn) => {
-        child.once("spawn", resolveSpawn);
-        child.once("error", rejectSpawn);
+      const outcome = await applyPatchInProcess({
+        applicationRoot: this.options.applicationRoot,
+        stagingFilesRoot: downloaded.stagingFilesRoot,
+        backupRoot,
+        files: downloaded.payload.files.map((file) => ({ path: file.path, sha256: file.sha256, size: file.size })),
+        remove: downloaded.payload.remove || []
       });
-      child.unref();
-      const message = "补丁安装助手已启动，软件将退出、完成替换并自动重启。";
-      this.options.log("patch apply scheduled", { patchId: downloaded.payload.patchId, planPath });
+      await writeJsonAtomic(this.applyResultPath, {
+        schemaVersion: 1,
+        patchId: downloaded.payload.patchId,
+        status: outcome.status,
+        message: outcome.message,
+        completedAt: (/* @__PURE__ */ new Date()).toISOString()
+      });
+      if (outcome.status !== "success") {
+        const message2 = outcome.status === "rolled-back" ? `在线补丁安装失败，原文件已自动恢复。${outcome.message ? ` ${outcome.message}` : ""}` : `在线补丁安装失败，部分文件可能无法恢复。${outcome.message ? ` ${outcome.message}` : ""}`;
+        this.options.log("patch in-process apply failed", { patchId: downloaded.payload.patchId, outcome, planPath });
+        this.event("error", message2, downloaded.info);
+        return { scheduled: false, message: message2 };
+      }
+      const message = "补丁已完成备份、替换和校验，软件正在自动重启。";
+      this.options.log("patch apply completed in-process", { patchId: downloaded.payload.patchId, planPath, backupRoot });
       this.event("applying", message, downloaded.info, 100);
       setTimeout(this.options.quitForApply, 250);
       return { scheduled: true, message };
     } catch (error) {
-      const message = `无法启动补丁安装：${errorMessage(error)}`;
-      this.options.log("patch apply scheduling failed", errorMessage(error));
+      const message = `无法安装在线补丁：${errorMessage(error)}`;
+      this.options.log("patch apply failed before restart", errorMessage(error));
       this.event("error", message, downloaded.info);
       return { scheduled: false, message };
     }
@@ -6123,8 +6261,10 @@ async function createWindow() {
     emit,
     log: runtimeLog,
     quitForApply: () => {
+      if (shuttingDown) return;
       closeApproved = true;
       shuttingDown = true;
+      app.relaunch();
       persistUnreadCounts();
       webViews?.shutdown();
       googleVoice?.shutdown();

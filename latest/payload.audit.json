@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.6-update-overlay-restart-fix2-20260829",
+  "patchId": "4.0.6-inprocess-updater-restart-fix-20260829",
   "baseVersions": [
     "4.0.6"
   ],
   "targetVersion": "4.0.6",
-  "publishedAt": "2026-08-30T00:08:21.164Z",
-  "description": "修复在线补丁确认弹窗被工作区遮挡，以及确认更新后补丁未应用、软件未自动重启的问题。",
+  "publishedAt": "2026-08-30T00:51:50.438Z",
+  "description": "修复确认在线补丁后安装助手随主程序退出、补丁未应用且软件无法自动重启的问题；改为事务式应用、失败回滚并由 Electron 自动重启。",
   "files": [
     {
       "path": "out/main/index.js",
       "url": "files/out/main/index.js",
-      "sha256": "185ed7c566c733035720f224b0b4bd61ba32d5c25e1f56a5c18f19a60ee597e8",
-      "size": 295682
+      "sha256": "c4af050c9541e67372a4300e450a53a6fa963a05b5c5886865e09f2e3846fddc",
+      "size": 302634
     },
     {
       "path": "out/renderer/assets/index-BzOTvv0n.js",
