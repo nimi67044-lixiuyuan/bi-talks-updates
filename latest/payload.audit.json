@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.6-groq-models-20260830",
+  "patchId": "4.0.6-reset-api-usage-20260830",
   "baseVersions": [
     "4.0.6"
   ],
   "targetVersion": "4.0.6",
-  "publishedAt": "2026-08-30T15:38:46.888Z",
-  "description": "Add Llama 3.1 8B Instant and Llama 3.3 70B Versatile Groq model options",
+  "publishedAt": "2026-08-30T15:57:27.694Z",
+  "description": "Add a cumulative API character reset button",
   "files": [
     {
       "path": "build/icons/app.png",
@@ -46,16 +46,16 @@
       "size": 28135
     },
     {
-      "path": "out/renderer/assets/index-Cea9iW4Z.js",
-      "url": "files/out/renderer/assets/index-Cea9iW4Z.js",
-      "sha256": "1f6010a033441a26085caf49a10ebd3f87ab50a46e200e0e85bf82c95de66e5a",
-      "size": 778950
+      "path": "out/renderer/assets/index-BQsAeh9m.js",
+      "url": "files/out/renderer/assets/index-BQsAeh9m.js",
+      "sha256": "b7f6e7c2db779b24c521f1b55ec6cd1bdb244f2cee48d082114aba3a1d61b37e",
+      "size": 780347
     },
     {
-      "path": "out/renderer/assets/index-jMWQudkV.css",
-      "url": "files/out/renderer/assets/index-jMWQudkV.css",
-      "sha256": "afdd6c5be5a5b6f6f98020e854e50d7ad598da08d8fab09b20f56e3a5c413de7",
-      "size": 28754
+      "path": "out/renderer/assets/index-EwOq8PJB.css",
+      "url": "files/out/renderer/assets/index-EwOq8PJB.css",
+      "sha256": "d97a42054c232a9d6d1c60ee50e1c9eb3a56328c0ac8df3d0d6293660534e954",
+      "size": 28882
     },
     {
       "path": "out/renderer/favicon.png",
@@ -66,7 +66,7 @@
     {
       "path": "out/renderer/index.html",
       "url": "files/out/renderer/index.html",
-      "sha256": "382a91e994a1ac4fea753d36f93c2a123e2f85968655fb2247c1d6a124b3a816",
+      "sha256": "8e98464163a448b4eada72283e80af8c9705677e7b51bf2927e56a7da0438461",
       "size": 679
     },
     {

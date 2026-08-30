@@ -18345,6 +18345,7 @@ function SettingsModal({ state, save, onClose, onNotice }) {
   const [deeplApiKey, setDeeplApiKey] = reactExports.useState(state.settings.deeplApiKey || "");
   const [apiTestMessage, setApiTestMessage] = reactExports.useState("");
   const [testingApi, setTestingApi] = reactExports.useState(false);
+  const [resettingApiUsage, setResettingApiUsage] = reactExports.useState(false);
   const apiUsage = translationProvider === "groq" ? state.settings.apiUsage.groq : state.settings.apiUsage.deepl;
   const apiKey = translationProvider === "deepl" ? deeplApiKey : groqApi.apiKey;
   const apiStatusTitle = translationProvider === "deepl" ? "DeepL API 状态与用量" : "Groq API 状态与用量";
@@ -18402,6 +18403,34 @@ function SettingsModal({ state, save, onClose, onNotice }) {
       setApiTestMessage(`API 验证失败：${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setTestingApi(false);
+    }
+  };
+  const resetCumulativeApiUsage = async () => {
+    if (resettingApiUsage) return;
+    setResettingApiUsage(true);
+    setApiTestMessage("");
+    try {
+      const latestState = await window.desktop.getState();
+      const provider = translationProvider === "groq" ? "groq" : "deepl";
+      const currentUsage = latestState.settings.apiUsage[provider];
+      await save({
+        ...latestState,
+        settings: {
+          ...latestState.settings,
+          apiUsage: {
+            ...latestState.settings.apiUsage,
+            [provider]: {
+              ...currentUsage,
+              totalCharacters: 0
+            }
+          }
+        }
+      });
+      onNotice(`${provider === "groq" ? "Groq" : "DeepL"} 累计字符已归零。`);
+    } catch (error) {
+      setApiTestMessage(`累计归零失败：${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setResettingApiUsage(false);
     }
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(Modal, { title: "Settings", onClose, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-stack", children: [
@@ -18505,7 +18534,10 @@ function SettingsModal({ state, save, onClose, onNotice }) {
       apiUsage && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "api-usage-card", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "api-usage-header", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: apiStatusTitle }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "ghost-button api-test-button", type: "button", disabled: testingApi, onClick: () => void testApi(), children: testingApi ? "测试中…" : "测试 API" })
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "api-usage-actions", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "ghost-button api-reset-button", type: "button", disabled: resettingApiUsage, onClick: () => void resetCumulativeApiUsage(), children: resettingApiUsage ? "归零中…" : "累计归零" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "ghost-button api-test-button", type: "button", disabled: testingApi, onClick: () => void testApi(), children: testingApi ? "测试中…" : "测试 API" })
+          ] })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "api-usage-values", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
