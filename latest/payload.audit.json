@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.7-automatic-update-reminders-20260830",
+  "patchId": "4.0.7-restore-window-placement-20260830",
   "baseVersions": [
     "4.0.7"
   ],
   "targetVersion": "4.0.7",
-  "publishedAt": "2026-08-30T23:21:17.965Z",
-  "description": "Add silent startup and periodic update checks with an availability badge and once-daily patch reminder",
+  "publishedAt": "2026-08-30T23:33:49.438Z",
+  "description": "Restore the main window normal size, desktop position and maximized state after restarts and online patch updates",
   "files": [
     {
       "path": "build/icons/app.png",
@@ -30,8 +30,8 @@
     {
       "path": "out/main/index.js",
       "url": "files/out/main/index.js",
-      "sha256": "81cc17c7812ad1954a07dd6bbb58fba92da207aa047cd741f3afd7449d761102",
-      "size": 303334
+      "sha256": "aa6574a072378148618f39fcfe10f76c7fc8abe057ab1ccecc744471e7f2f37c",
+      "size": 308315
     },
     {
       "path": "out/preload/index.cjs",

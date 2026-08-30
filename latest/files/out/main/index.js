@@ -1,4 +1,4 @@
-import { app, safeStorage, WebContentsView, shell, session, ipcMain, powerMonitor, Menu, BrowserWindow, nativeImage, Tray } from "electron";
+import { app, safeStorage, WebContentsView, shell, session, ipcMain, powerMonitor, Menu, BrowserWindow, screen, nativeImage, Tray } from "electron";
 import { existsSync, promises, readFileSync, rmSync, createWriteStream, mkdirSync, writeFileSync, renameSync } from "node:fs";
 import { join, dirname, resolve, basename, sep, isAbsolute } from "node:path";
 import { deflateSync } from "node:zlib";
@@ -5290,6 +5290,57 @@ class AppPatchManager {
     }
   }
 }
+const minimumVisiblePixels = 80;
+function finiteInteger(value) {
+  return typeof value === "number" && Number.isFinite(value) ? Math.round(value) : void 0;
+}
+function parseWindowState(value) {
+  if (!value || typeof value !== "object") return void 0;
+  const candidate = value;
+  if (candidate.schemaVersion !== 1 || !candidate.bounds || typeof candidate.bounds !== "object") return void 0;
+  const rawBounds = candidate.bounds;
+  const x = finiteInteger(rawBounds.x);
+  const y = finiteInteger(rawBounds.y);
+  const width = finiteInteger(rawBounds.width);
+  const height = finiteInteger(rawBounds.height);
+  if (x === void 0 || y === void 0 || width === void 0 || height === void 0 || width <= 0 || height <= 0) return void 0;
+  return {
+    schemaVersion: 1,
+    bounds: { x, y, width, height },
+    maximized: candidate.maximized === true
+  };
+}
+function intersection(left, right) {
+  const width = Math.max(0, Math.min(left.x + left.width, right.x + right.width) - Math.max(left.x, right.x));
+  const height = Math.max(0, Math.min(left.y + left.height, right.y + right.height) - Math.max(left.y, right.y));
+  return { width, height, area: width * height };
+}
+function clamp(value, minimum, maximum) {
+  return Math.min(maximum, Math.max(minimum, value));
+}
+function restoreVisibleBounds(saved, workAreas, primaryWorkArea, minimumWidth = 980, minimumHeight = 640) {
+  const areas = workAreas.length ? workAreas : [primaryWorkArea];
+  const ranked = areas.map((area2) => ({ area: area2, intersection: intersection(saved, area2) })).sort((left, right) => right.intersection.area - left.intersection.area);
+  const best = ranked[0];
+  const hasVisibleCorner = best && best.intersection.width >= minimumVisiblePixels && best.intersection.height >= minimumVisiblePixels;
+  const area = hasVisibleCorner ? best.area : primaryWorkArea;
+  const width = area.width >= minimumWidth ? Math.min(Math.max(saved.width, minimumWidth), area.width) : minimumWidth;
+  const height = area.height >= minimumHeight ? Math.min(Math.max(saved.height, minimumHeight), area.height) : minimumHeight;
+  if (!hasVisibleCorner) {
+    return {
+      x: Math.round(area.x + (area.width - width) / 2),
+      y: Math.round(area.y + (area.height - height) / 2),
+      width,
+      height
+    };
+  }
+  return {
+    x: area.width >= width ? clamp(saved.x, area.x, area.x + area.width - width) : area.x,
+    y: area.height >= height ? clamp(saved.y, area.y, area.y + area.height - height) : area.y,
+    width,
+    height
+  };
+}
 const appDisplayName = "Bi-Talks";
 app.setName(appDisplayName);
 const portableRoot = app.isPackaged ? dirname(process.execPath) : app.getAppPath();
@@ -5346,6 +5397,7 @@ const signalSuspendReassertTimers = /* @__PURE__ */ new Set();
 let workspaceTaskbarPreviewTimer;
 let taskbarBadgeKeepAliveTimer;
 let mainWindowPresentationTimer;
+let mainWindowStateSaveTimer;
 let accountAutostartPromise;
 let signalDesktopUpdateFlow;
 let signalSuspendedWithMainWindow = false;
@@ -5353,6 +5405,7 @@ let signalMinimizedWithOwner = false;
 let pendingSignalRecovery = false;
 let pendingOwnedSignalRestore = false;
 let mainWindowPresented = false;
+let mainWindowPlacementRestored = false;
 let workspaceTaskbarPreviewInFlight = false;
 let workspaceTaskbarPreviewReadyAccountId;
 let workspaceTaskbarPreviewSuspendedUntil = 0;
@@ -5367,6 +5420,51 @@ let lastTaskbarUnreadTotal = -1;
 const trustedUnreadDecreaseStabilityMs = 100;
 const backgroundUnreadDecreaseStabilityMs = 1500;
 const unreadStatePath = join(localRuntimeRoot, "unread-state.json");
+const mainWindowStatePath = join(portableDataRoot, "window-state.json");
+function loadMainWindowState() {
+  if (!existsSync(mainWindowStatePath)) return void 0;
+  try {
+    const saved = parseWindowState(JSON.parse(readFileSync(mainWindowStatePath, "utf8")));
+    if (!saved) throw new Error("Window state is malformed.");
+    const displays = screen.getAllDisplays();
+    const primaryWorkArea = screen.getPrimaryDisplay().workArea;
+    return {
+      ...saved,
+      bounds: restoreVisibleBounds(saved.bounds, displays.map((display) => display.workArea), primaryWorkArea)
+    };
+  } catch (error) {
+    runtimeLog("main window state restore skipped", error instanceof Error ? error.message : String(error));
+    return void 0;
+  }
+}
+function persistMainWindowState() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  try {
+    const state = {
+      schemaVersion: 1,
+      bounds: mainWindow.getNormalBounds(),
+      maximized: mainWindow.isMaximized()
+    };
+    const temporaryPath = `${mainWindowStatePath}.tmp`;
+    writeFileSync(temporaryPath, `${JSON.stringify(state, null, 2)}
+`, "utf8");
+    try {
+      renameSync(temporaryPath, mainWindowStatePath);
+    } catch {
+      rmSync(mainWindowStatePath, { force: true });
+      renameSync(temporaryPath, mainWindowStatePath);
+    }
+  } catch (error) {
+    runtimeLog("main window state save failed", error instanceof Error ? error.message : String(error));
+  }
+}
+function scheduleMainWindowStateSave() {
+  if (mainWindowStateSaveTimer) clearTimeout(mainWindowStateSaveTimer);
+  mainWindowStateSaveTimer = setTimeout(() => {
+    mainWindowStateSaveTimer = void 0;
+    persistMainWindowState();
+  }, 400);
+}
 const taskbarDigitGlyphs = {
   "0": ["111", "101", "101", "101", "111"],
   "1": ["010", "110", "010", "010", "111"],
@@ -6186,7 +6284,7 @@ function presentMainWindow(reason) {
   if (!mainWindow || mainWindow.isDestroyed() || shuttingDown) return;
   try {
     if (mainWindow.isMinimized()) mainWindow.restore();
-    if (!mainWindowPresented) mainWindow.center();
+    if (!mainWindowPresented && !mainWindowPlacementRestored) mainWindow.center();
     mainWindowPresented = true;
     if (!mainWindow.isVisible()) mainWindow.show();
     mainWindow.focus();
@@ -6227,11 +6325,12 @@ async function createWindow() {
     new TranslationHistory(join(app.getPath("userData"), "translation-history.jsonl"))
   );
   mainWindowPresented = false;
+  const restoredWindowState = loadMainWindowState();
+  mainWindowPlacementRestored = Boolean(restoredWindowState);
   const windowIcon = appIconImage();
   Menu.setApplicationMenu(null);
   mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 900,
+    ...restoredWindowState?.bounds || { width: 1440, height: 900 },
     minWidth: 980,
     minHeight: 640,
     show: false,
@@ -6257,6 +6356,7 @@ async function createWindow() {
   } else {
     runtimeLog("main window icon unavailable");
   }
+  if (restoredWindowState?.maximized) mainWindow.maximize();
   ensureSystemTray();
   setNativeWindowEffects();
   webViews = new WebViewManager(mainWindow, emit);
@@ -6287,6 +6387,7 @@ async function createWindow() {
     log: runtimeLog,
     quitForApply: () => {
       if (shuttingDown) return;
+      persistMainWindowState();
       closeApproved = true;
       shuttingDown = true;
       app.relaunch();
@@ -6321,11 +6422,13 @@ async function createWindow() {
   mainWindow.webContents.on("unresponsive", () => runtimeLog("main renderer unresponsive"));
   mainWindow.webContents.on("responsive", () => runtimeLog("main renderer responsive"));
   mainWindow.on("moved", () => {
+    scheduleMainWindowStateSave();
     scheduleActiveSignalWindowSync();
     googleVoice.recoverActive();
     updateWorkspaceNoticeOverlay();
   });
   mainWindow.on("resize", () => {
+    scheduleMainWindowStateSave();
     scheduleActiveSignalWindowSync();
     googleVoice.recoverActive();
     updateWorkspaceNoticeOverlay();
@@ -6339,9 +6442,12 @@ async function createWindow() {
     updateWorkspaceNoticeOverlay();
   });
   mainWindow.on("restore", () => {
+    scheduleMainWindowStateSave();
     refreshTaskbarUnreadBadge();
     recoverAfterForeground();
   });
+  mainWindow.on("maximize", scheduleMainWindowStateSave);
+  mainWindow.on("unmaximize", scheduleMainWindowStateSave);
   mainWindow.on("show", () => {
     refreshTaskbarUnreadBadge();
     recoverAfterForeground();
@@ -6356,6 +6462,7 @@ async function createWindow() {
   mainWindow.on("hide", () => suspendSignalWithMainWindow());
   mainWindow.on("close", (event) => {
     runtimeLog("main window closing", { shuttingDown });
+    persistMainWindowState();
     if (!shuttingDown && !closeApproved) {
       event.preventDefault();
       mainWindow?.webContents.send("window:close-requested");
@@ -6372,9 +6479,12 @@ async function createWindow() {
     runtimeLog("main window closed");
     if (mainWindowPresentationTimer) clearTimeout(mainWindowPresentationTimer);
     mainWindowPresentationTimer = void 0;
+    if (mainWindowStateSaveTimer) clearTimeout(mainWindowStateSaveTimer);
+    mainWindowStateSaveTimer = void 0;
     if (taskbarBadgeRefreshTimer) clearTimeout(taskbarBadgeRefreshTimer);
     taskbarBadgeRefreshTimer = void 0;
     mainWindowPresented = false;
+    mainWindowPlacementRestored = false;
     if (signalLifecycleTimer) clearInterval(signalLifecycleTimer);
     signalLifecycleTimer = void 0;
     if (signalWindowSyncTimer) clearTimeout(signalWindowSyncTimer);
@@ -6654,6 +6764,7 @@ app.on("child-process-gone", (_event, details) => {
 });
 app.on("before-quit", (event) => {
   runtimeLog("before quit", { shuttingDown });
+  persistMainWindowState();
   persistUnreadCounts();
   if (!shuttingDown) {
     shuttingDown = true;
@@ -6669,6 +6780,7 @@ app.on("before-quit", (event) => {
 });
 app.on("will-quit", () => {
   runtimeLog("will quit");
+  persistMainWindowState();
   webViews?.shutdown();
   googleVoice?.shutdown();
   signal?.shutdown();
