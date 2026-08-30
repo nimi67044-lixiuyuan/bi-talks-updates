@@ -42,7 +42,7 @@
   },
   "build": {
     "appId": "com.local.bitalks.windowsdesktop",
-    "productName": "Bi-talks",
+    "productName": "Bi-Talks",
     "asar": false,
     "directories": {
       "output": "release"

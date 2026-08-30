@@ -15875,6 +15875,67 @@ function normalizeDisabled(disabled) {
   }
   return disabled;
 }
+const defaultScale = {
+  scaleX: 1,
+  scaleY: 1
+};
+const horizontalListSortingStrategy = (_ref) => {
+  var _rects$activeIndex;
+  let {
+    rects,
+    activeNodeRect: fallbackActiveRect,
+    activeIndex,
+    overIndex,
+    index
+  } = _ref;
+  const activeNodeRect = (_rects$activeIndex = rects[activeIndex]) != null ? _rects$activeIndex : fallbackActiveRect;
+  if (!activeNodeRect) {
+    return null;
+  }
+  const itemGap = getItemGap(rects, index, activeIndex);
+  if (index === activeIndex) {
+    const newIndexRect = rects[overIndex];
+    if (!newIndexRect) {
+      return null;
+    }
+    return {
+      x: activeIndex < overIndex ? newIndexRect.left + newIndexRect.width - (activeNodeRect.left + activeNodeRect.width) : newIndexRect.left - activeNodeRect.left,
+      y: 0,
+      ...defaultScale
+    };
+  }
+  if (index > activeIndex && index <= overIndex) {
+    return {
+      x: -activeNodeRect.width - itemGap,
+      y: 0,
+      ...defaultScale
+    };
+  }
+  if (index < activeIndex && index >= overIndex) {
+    return {
+      x: activeNodeRect.width + itemGap,
+      y: 0,
+      ...defaultScale
+    };
+  }
+  return {
+    x: 0,
+    y: 0,
+    ...defaultScale
+  };
+};
+function getItemGap(rects, index, activeIndex) {
+  const currentRect = rects[index];
+  const previousRect = rects[index - 1];
+  const nextRect = rects[index + 1];
+  if (!currentRect || !previousRect && !nextRect) {
+    return 0;
+  }
+  if (activeIndex < index) {
+    return previousRect ? currentRect.left - (previousRect.left + previousRect.width) : nextRect.left - (currentRect.left + currentRect.width);
+  }
+  return nextRect ? nextRect.left - (currentRect.left + currentRect.width) : currentRect.left - (previousRect.left + previousRect.width);
+}
 const rectSortingStrategy = (_ref) => {
   let {
     rects,
@@ -16656,8 +16717,7 @@ function bilingualTranslationTarget(text) {
 const signalIcon = "data:image/svg+xml,%3csvg%20width='16'%20height='16'%20viewBox='0%200%2016%2016'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M0.0618938%207H1.07089C1.22013%205.95667%201.59943%204.98756%202.15575%204.14571L1.43586%203.42581C0.711022%204.46404%200.226214%205.68225%200.0618938%207Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M2.33812%202.34818L3.04523%203.05528C3.60952%202.48985%204.26999%202.02042%205%201.67363L5%200.581517C3.99507%200.988303%203.09161%201.59336%202.33812%202.34818Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M6%200.252035L6%201.28988C6.63371%201.10128%207.30503%201%208%201C8.33952%201%208.6734%201.02417%209%201.07089V0.0618938C8.67241%200.0210433%208.33866%200%208%200C7.3094%200%206.63924%200.087506%206%200.252035Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M10%200.252035V1.28988C10.899%201.55744%2011.7223%202.00074%2012.4301%202.57994L13.1403%201.86974C12.2407%201.11456%2011.1723%200.55377%2010%200.252035Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M14.1303%202.85969L13.4201%203.56989C13.9993%204.27768%2014.4426%205.101%2014.7101%206L15.748%206C15.4462%204.82768%2014.8854%203.75936%2014.1303%202.85969Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M15.9381%207L14.9291%207C14.9758%207.3266%2015%207.66048%2015%208C15%208.69497%2014.8987%209.36629%2014.7101%2010L15.748%2010C15.9125%209.36076%2016%208.6906%2016%208C16%207.66134%2015.979%207.32759%2015.9381%207Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M15.4185%2011L14.3264%2011C13.9796%2011.73%2013.5102%2012.3905%2012.9447%2012.9548L13.6518%2013.6619C14.4066%2012.9084%2015.0117%2012.0049%2015.4185%2011Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M12.5742%2014.5641L11.8543%2013.8442C11.0124%2014.4006%2010.0433%2014.7799%209%2014.9291V15.9381C10.3177%2015.7738%2011.536%2015.289%2012.5742%2014.5641Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M8%2016V15C6.92554%2015%205.90876%2014.7583%205%2014.3265L5%2015.4183C5.92687%2015.7935%206.93978%2016%208%2016Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M4%2015.7822L4%2014.7803L1.31716%2014.948C1.16703%2014.9573%201.04267%2014.833%201.05205%2014.6828L1.21973%2012H0.217779L0.0539996%2014.6205C0.00708404%2015.3711%200.628888%2015.9929%201.37954%2015.946L4%2015.7822Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M0.581662%2011H1.6735C1.24175%2010.0912%201%209.07446%201%208H0C0%209.06022%200.206493%2010.0731%200.581662%2011Z'%20fill='%233B45FD'%3e%3c/path%3e%3cpath%20d='M8.00004%2014C11.3137%2014%2014%2011.3137%2014%208C14%204.68631%2011.3137%202.00003%208.00004%202.00003C4.68634%202.00003%202.00006%204.68631%202.00006%208C2.00006%208.81893%202.16412%209.59954%202.46118%2010.3108L2.00003%2014L5.68926%2013.5388C6.40048%2013.8359%207.1811%2014%208.00004%2014Z'%20fill='%233B45FD'%3e%3c/path%3e%3cstyle%3e@media%20(prefers-color-scheme:%20light)%20{%20path%20{%20fill:%233B45FD;%20}%20}%20@media%20(prefers-color-scheme:%20dark)%20{%20path%20{%20fill:%23FFFFFF;%20}%20}%20%3c/style%3e%3c/svg%3e";
 const railWidth = 57;
 const resizeHandleWidth = 3;
-const minAccountPanelWidth = 150;
-const maxAccountPanelWidth = 1500;
+const topAccountBarHeight = 64;
 const minWorkspaceWidth = 360;
 function currentUsageDay() {
   const date = /* @__PURE__ */ new Date();
@@ -16993,7 +17053,7 @@ function App() {
       (sum, [accountId, count2]) => sum + (visibleAccountIds.has(accountId) ? count2 : 0),
       0
     );
-    document.title = total > 0 ? `(${unreadLabel(total)}) Bi-Talks win10/11` : "Bi-Talks win10/11";
+    document.title = total > 0 ? `(${unreadLabel(total)}) Bi-Talks` : "Bi-Talks";
   }, [state?.accounts, unreadCounts]);
   const autoSignalAttachAttempts = reactExports.useRef(/* @__PURE__ */ new Set());
   const manuallyClosedAccountIds = reactExports.useRef(/* @__PURE__ */ new Set());
@@ -17212,7 +17272,7 @@ function App() {
     lastSentWebBounds.current = bounds;
     return window.desktop.setViewBounds(bounds);
   }, [webBounds]);
-  const webBoundsForPanelWidth = reactExports.useCallback((panelWidth) => {
+  reactExports.useCallback((panelWidth) => {
     const panels = mainPanels.current?.getBoundingClientRect();
     const surface = webSurface.current?.getBoundingClientRect();
     if (!panels || !surface) return void 0;
@@ -17264,7 +17324,7 @@ function App() {
       height: Math.round(rect.height)
     };
   }, []);
-  const signalBoundsForPanelWidth = reactExports.useCallback((panelWidth) => {
+  reactExports.useCallback((panelWidth) => {
     const panels = mainPanels.current?.getBoundingClientRect();
     const surface = signalSurface.current?.getBoundingClientRect();
     if (!panels || !surface) return void 0;
@@ -17466,87 +17526,6 @@ function App() {
     }
     pendingSignalPlacement.current = void 0;
   }, [selectedAccount?.id]);
-  const startResize = (event) => {
-    event.preventDefault();
-    const pointerId = event.pointerId;
-    const startX = event.clientX;
-    const startWidth = accountPanelWidth;
-    let latestWidth = startWidth;
-    const target = event.currentTarget;
-    target.setPointerCapture(pointerId);
-    target.setAttribute("data-resize-handle-active", "true");
-    document.body.classList.add("is-resizing-sidebar");
-    telegramSidebarResizeActive.current = selectedAccount?.platform === "telegram" && workspaceIsWeb && !modalIsOpen;
-    telegramNativeViewSuspended.current = false;
-    telegramResizeAccountId.current = telegramSidebarResizeActive.current ? selectedAccount?.id : void 0;
-    const snapshotRequestId = ++telegramResizeSnapshotRequestId.current;
-    if (telegramSidebarResizeActive.current && selectedAccount) {
-      const telegramAccount = selectedAccount;
-      void window.desktop.captureViewPreview(telegramAccount).then(async (dataUrl) => {
-        if (telegramResizeSnapshotRequestId.current !== snapshotRequestId || !telegramSidebarResizeActive.current || telegramResizeAccountId.current !== telegramAccount.id || latestState.current?.selectedAccountId !== telegramAccount.id) return;
-        if (dataUrl) setWorkspacePreview({ accountId: telegramAccount.id, dataUrl });
-        telegramNativeViewSuspended.current = true;
-        await window.desktop.activateView(void 0);
-      }).catch(() => void 0);
-    }
-    const move = (pointerEvent) => {
-      const total = mainPanels.current?.clientWidth || window.innerWidth;
-      const limit = Math.max(minAccountPanelWidth, total - railWidth - resizeHandleWidth - minWorkspaceWidth);
-      const next = Math.min(maxAccountPanelWidth, limit, Math.max(minAccountPanelWidth, startWidth + pointerEvent.clientX - startX));
-      latestWidth = next;
-      pendingPanelWidth.current = next;
-      if (panelResizeFrame.current === void 0) {
-        panelResizeFrame.current = window.requestAnimationFrame(() => {
-          panelResizeFrame.current = void 0;
-          const width = pendingPanelWidth.current;
-          pendingPanelWidth.current = void 0;
-          if (width !== void 0) setAccountPanelWidth(width);
-        });
-      }
-      if (workspaceIsWeb && !modalIsOpen) scheduleWebBoundsSync(webBoundsForPanelWidth(next));
-      if (!modalIsOpen) scheduleSignalBoundsSync(true, signalBoundsForPanelWidth(next));
-    };
-    const stop = () => {
-      target.releasePointerCapture(pointerId);
-      target.removeAttribute("data-resize-handle-active");
-      document.body.classList.remove("is-resizing-sidebar");
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", stop);
-      window.removeEventListener("pointercancel", stop);
-      stopAccountResize.current = void 0;
-      const resumeTelegramAccountId = telegramResizeAccountId.current;
-      const resumeTelegramAccount = selectedAccount?.id === resumeTelegramAccountId ? selectedAccount : void 0;
-      telegramSidebarResizeActive.current = false;
-      telegramNativeViewSuspended.current = false;
-      telegramResizeAccountId.current = void 0;
-      telegramResizeSnapshotRequestId.current += 1;
-      if (panelResizeFrame.current !== void 0) window.cancelAnimationFrame(panelResizeFrame.current);
-      panelResizeFrame.current = void 0;
-      pendingPanelWidth.current = void 0;
-      if (telegramResizeBoundsTimer.current !== void 0) window.clearTimeout(telegramResizeBoundsTimer.current);
-      telegramResizeBoundsTimer.current = void 0;
-      pendingWebBounds.current = void 0;
-      setAccountPanelWidth(latestWidth);
-      const finalWebBounds = webBoundsForPanelWidth(latestWidth);
-      if (resumeTelegramAccount) {
-        void (async () => {
-          if (finalWebBounds) await window.desktop.setViewBounds(finalWebBounds);
-          await window.desktop.activateView(resumeTelegramAccount);
-          moveWebBoundsNow(finalWebBounds);
-        })().catch(() => void 0);
-      } else {
-        moveWebBoundsNow(finalWebBounds);
-      }
-      window.setTimeout(() => {
-        moveWebBoundsNow(webBoundsForPanelWidth(latestWidth));
-        moveSignalBoundsNow(true, signalBoundsForPanelWidth(latestWidth));
-      }, 0);
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", stop);
-    window.addEventListener("pointercancel", stop);
-    stopAccountResize.current = stop;
-  };
   const selectPlatform = async (platform) => {
     if (!state) return;
     signalAttachRunId.current += 1;
@@ -17653,12 +17632,10 @@ function App() {
   const openAccountMenu = (event, account) => {
     event.preventDefault();
     event.stopPropagation();
-    const rect = accountPanel.current?.getBoundingClientRect();
-    if (!rect) return;
-    const menuWidth = Math.min(198, Math.max(0, rect.width - 12));
+    const menuWidth = 198;
     const menuHeight = translationTogglePlatforms.has(account.platform) ? 424 : translationPreferencePlatforms.has(account.platform) ? 392 : 244;
-    const x = Math.max(6, Math.min(event.clientX - rect.left, rect.width - menuWidth - 6));
-    const y = Math.max(6, Math.min(event.clientY - rect.top, rect.height - menuHeight - 6));
+    const x = Math.max(6, Math.min(event.clientX, window.innerWidth - menuWidth - 6));
+    const y = Math.max(6, Math.min(event.clientY, window.innerHeight - menuHeight - 6));
     setAccountMenu({ accountId: account.id, x, y });
   };
   const startAccountAction = async (account) => {
@@ -17875,7 +17852,10 @@ function App() {
       {
         ref: mainPanels,
         className: "main-panels",
-        style: { gridTemplateColumns: `${railWidth}px ${accountPanelWidth}px ${resizeHandleWidth}px minmax(${minWorkspaceWidth}px, 1fr)` },
+        style: {
+          gridTemplateColumns: `${railWidth}px minmax(${minWorkspaceWidth}px, 1fr)`,
+          gridTemplateRows: `${topAccountBarHeight}px minmax(0, 1fr)`
+        },
         children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("aside", { className: "rail-panel", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "platform-rail", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "window-drag" }),
@@ -17910,37 +17890,27 @@ function App() {
           ] }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("aside", { ref: accountPanel, className: "account-panel-shell", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-panel", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel-header", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { children: platforms[state.selectedPlatform].name }) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "icon-button primary", onClick: openAddAccount, title: "Add account", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { size: 18 }) })
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(DndContext, { sensors, collisionDetection: closestCenter, onDragEnd: accountDrop, children: /* @__PURE__ */ jsxRuntimeExports.jsx(SortableContext, { items: accounts.map((item) => item.id), strategy: verticalListSortingStrategy, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-list", children: [
-                accounts.map((account) => {
-                  return /* @__PURE__ */ jsxRuntimeExports.jsx(SortableItem, { id: account.id, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                    "div",
-                    {
-                      className: `account-row ${selectedAccount?.id === account.id ? "active" : ""}`,
-                      onClick: () => void selectAccount(account),
-                      onContextMenu: (event) => openAccountMenu(event, account),
-                      children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-avatar", children: [
-                          /* @__PURE__ */ jsxRuntimeExports.jsx(PlatformIcon, { platform: account.platform, className: "account-platform-icon" }),
-                          account.platform !== "telegram" && !!unreadCounts[account.id] && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "unread-badge account-unread-badge", children: unreadLabel(unreadCounts[account.id]) })
-                        ] }),
-                        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-copy", children: [
-                          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: account.label }),
-                          /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: statuses[account.id] || account.identifier || "Ready" })
-                        ] })
-                      ]
-                    }
-                  ) }, account.id);
-                }),
-                !accounts.length && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "empty-state", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "empty-icon", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { size: 22 }) }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "No account yet" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "text-button", onClick: openAddAccount, children: "Add first account" })
-                ] })
-              ] }) }) })
+              /* @__PURE__ */ jsxRuntimeExports.jsx(DndContext, { sensors, collisionDetection: closestCenter, onDragEnd: accountDrop, children: /* @__PURE__ */ jsxRuntimeExports.jsx(SortableContext, { items: accounts.map((item) => item.id), strategy: horizontalListSortingStrategy, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "account-list", children: accounts.map((account) => {
+                return /* @__PURE__ */ jsxRuntimeExports.jsx(SortableItem, { id: account.id, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "div",
+                  {
+                    className: `account-row ${selectedAccount?.id === account.id ? "active" : ""}`,
+                    onClick: () => void selectAccount(account),
+                    onContextMenu: (event) => openAccountMenu(event, account),
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-avatar", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(PlatformIcon, { platform: account.platform, className: "account-platform-icon" }),
+                        account.platform !== "telegram" && !!unreadCounts[account.id] && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "unread-badge account-unread-badge", children: unreadLabel(unreadCounts[account.id]) })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "account-copy", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: account.label }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("small", { children: statuses[account.id] || account.identifier || "Ready" })
+                      ] })
+                    ]
+                  }
+                ) }, account.id);
+              }) }) }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "account-add-slot", children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "icon-button primary", onClick: openAddAccount, title: "Add account", "aria-label": "Add account", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { size: 18 }) }) })
             ] }),
             accountMenu && menuAccount && /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "div",
@@ -18056,7 +18026,6 @@ function App() {
               }
             )
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "resize-handle account-resize-handle", onPointerDown: startResize }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("main", { className: "workspace-panel", children: /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: "workspace", style: workspaceTranslationStyle, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { ref: contentArea, className: "content-area", children: workspaceIsWeb ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { ref: webSurface, className: "web-surface", children: workspacePreview?.accountId === selectedAccount?.id ? /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "workspace-taskbar-preview", src: workspacePreview.dataUrl, alt: "", "aria-hidden": "true", draggable: false }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "web-loading", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(ExternalLink, { size: 18 }),
             "Web account surface"

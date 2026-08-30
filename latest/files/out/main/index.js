@@ -5290,7 +5290,8 @@ class AppPatchManager {
     }
   }
 }
-const appDisplayName = "Bi-Talks win10/11";
+const appDisplayName = "Bi-Talks";
+app.setName(appDisplayName);
 const portableRoot = app.isPackaged ? dirname(process.execPath) : app.getAppPath();
 const portableDataRoot = join(portableRoot, "portable-data");
 const defaultRuntimeRoot = join(portableDataRoot, "browser-runtime-v2");

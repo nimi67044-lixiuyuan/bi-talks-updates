@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.6-official-api-usage-20260830",
+  "patchId": "4.0.6-top-account-bar-20260830",
   "baseVersions": [
     "4.0.6"
   ],
   "targetVersion": "4.0.6",
-  "publishedAt": "2026-08-30T16:20:54.855Z",
-  "description": "Use official DeepL character and Groq token accounting with automatic reset when API keys change",
+  "publishedAt": "2026-08-30T16:50:35.870Z",
+  "description": "Rename the application to Bi-Talks and move account switching to a compact top bar",
   "files": [
     {
       "path": "build/icons/app.png",
@@ -30,8 +30,8 @@
     {
       "path": "out/main/index.js",
       "url": "files/out/main/index.js",
-      "sha256": "7eb2b51824cf545bd3e85a8861683d9c71a77751c9c01e266f22b73d54100008",
-      "size": 303314
+      "sha256": "81cc17c7812ad1954a07dd6bbb58fba92da207aa047cd741f3afd7449d761102",
+      "size": 303334
     },
     {
       "path": "out/preload/index.cjs",
@@ -46,16 +46,16 @@
       "size": 28135
     },
     {
-      "path": "out/renderer/assets/index-DfhAF4Bw.js",
-      "url": "files/out/renderer/assets/index-DfhAF4Bw.js",
-      "sha256": "9dded3d9f098646fa89639a1655893b617c79e4024a5c8120c69c1fccd4abe45",
-      "size": 782859
+      "path": "out/renderer/assets/index-bcCvfZhq.css",
+      "url": "files/out/renderer/assets/index-bcCvfZhq.css",
+      "sha256": "af9a2a213ca789a9ed4b89a2f78435c627c1165153462966b8661e08c2309430",
+      "size": 29898
     },
     {
-      "path": "out/renderer/assets/index-EwOq8PJB.css",
-      "url": "files/out/renderer/assets/index-EwOq8PJB.css",
-      "sha256": "d97a42054c232a9d6d1c60ee50e1c9eb3a56328c0ac8df3d0d6293660534e954",
-      "size": 28882
+      "path": "out/renderer/assets/index-BY0PtnKF.js",
+      "url": "files/out/renderer/assets/index-BY0PtnKF.js",
+      "sha256": "fafe902250066c5ce3d0211f8252c5a9facf20ee9d3a1067bb61c8f30d4c02b1",
+      "size": 779021
     },
     {
       "path": "out/renderer/favicon.png",
@@ -66,13 +66,13 @@
     {
       "path": "out/renderer/index.html",
       "url": "files/out/renderer/index.html",
-      "sha256": "a583b91b1ed91d9f4906601e5789af107ecfe0cba7af6489c82ea0d4fb2e4633",
-      "size": 679
+      "sha256": "3ab33e6989f6bb9fdf0143b8bc61d30ff94d5729ffe158589f37c4fad3e1feb1",
+      "size": 670
     },
     {
       "path": "package.json",
       "url": "files/package.json",
-      "sha256": "320243042c7723711a51bd93329b1a52e602008bb8ffb927f102407a7a5e7e2c",
+      "sha256": "911eb7c5ba1b2cef28f7244c08822bdd1da40b0b8ac677869123e15e2091e3dc",
       "size": 3379
     }
   ],
