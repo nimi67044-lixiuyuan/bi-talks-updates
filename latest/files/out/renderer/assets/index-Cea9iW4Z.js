@@ -16633,6 +16633,11 @@ const ZoomIn = createLucideIcon("ZoomIn", [
   ["line", { x1: "11", x2: "11", y1: "8", y2: "14", key: "1vmskp" }],
   ["line", { x1: "8", x2: "14", y1: "11", y2: "11", key: "durymu" }]
 ]);
+const groqModelOptions = [
+  { value: "qwen/qwen3.6-27b", label: "Qwen3.6 27B" },
+  { value: "llama-3.1-8b-instant", label: "Llama 3.1 8B Instant" },
+  { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B Versatile" }
+];
 const hanPattern = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/gu;
 const kanaPattern = /[\u3040-\u30ff\u31f0-\u31ff]/gu;
 const hangulPattern = /[\u1100-\u11ff\u3130-\u318f\uac00-\ud7af]/gu;
@@ -18441,14 +18446,15 @@ function SettingsModal({ state, save, onClose, onNotice }) {
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "custom-api-grid", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { children: [
             "Groq 模型",
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "input",
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "select",
               {
                 value: groqApi.model,
-                autoComplete: "off",
-                spellCheck: false,
-                placeholder: "例如：qwen/qwen3.6-27b",
-                onChange: (event) => updateGroqApi("model", event.currentTarget.value)
+                onChange: (event) => updateGroqApi("model", event.currentTarget.value),
+                children: [
+                  !groqModelOptions.some((model) => model.value === groqApi.model) && groqApi.model && /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: groqApi.model, children: groqApi.model }),
+                  groqModelOptions.map((model) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: model.value, children: model.label }, model.value))
+                ]
               }
             )
           ] }),

@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.6-groq-api-20260830",
+  "patchId": "4.0.6-groq-models-20260830",
   "baseVersions": [
     "4.0.6"
   ],
   "targetVersion": "4.0.6",
-  "publishedAt": "2026-08-30T15:31:01.718Z",
-  "description": "Replace Custom AI API with an independent Groq API translation channel",
+  "publishedAt": "2026-08-30T15:38:46.888Z",
+  "description": "Add Llama 3.1 8B Instant and Llama 3.3 70B Versatile Groq model options",
   "files": [
     {
       "path": "build/icons/app.png",
@@ -46,10 +46,10 @@
       "size": 28135
     },
     {
-      "path": "out/renderer/assets/index-BtJ7Wyr_.js",
-      "url": "files/out/renderer/assets/index-BtJ7Wyr_.js",
-      "sha256": "75d211c083a406de4897e15559226700e0040bf40ba3ba892f25b4e008b1775e",
-      "size": 778443
+      "path": "out/renderer/assets/index-Cea9iW4Z.js",
+      "url": "files/out/renderer/assets/index-Cea9iW4Z.js",
+      "sha256": "1f6010a033441a26085caf49a10ebd3f87ab50a46e200e0e85bf82c95de66e5a",
+      "size": 778950
     },
     {
       "path": "out/renderer/assets/index-jMWQudkV.css",
@@ -66,7 +66,7 @@
     {
       "path": "out/renderer/index.html",
       "url": "files/out/renderer/index.html",
-      "sha256": "451ac76b801a4feda81e9725fc665e179d68abc841d2dc177dc29e2218802727",
+      "sha256": "382a91e994a1ac4fea753d36f93c2a123e2f85968655fb2247c1d6a124b3a816",
       "size": 679
     },
     {
