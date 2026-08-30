@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.7-modal-download-progress-20260830",
+  "patchId": "4.0.7-automatic-update-reminders-20260830",
   "baseVersions": [
     "4.0.7"
   ],
   "targetVersion": "4.0.7",
-  "publishedAt": "2026-08-30T22:53:51.499Z",
-  "description": "Show online patch download progress inside the confirmation dialog and suppress duplicate external download notices",
+  "publishedAt": "2026-08-30T23:21:17.965Z",
+  "description": "Add silent startup and periodic update checks with an availability badge and once-daily patch reminder",
   "files": [
     {
       "path": "build/icons/app.png",
@@ -46,16 +46,16 @@
       "size": 28135
     },
     {
-      "path": "out/renderer/assets/index-4i1yEsAP.css",
-      "url": "files/out/renderer/assets/index-4i1yEsAP.css",
-      "sha256": "50e4fa880676e4e440a08fddac038328b4efb2b2c257fa1f7fb8a5d898a6aa38",
-      "size": 32270
+      "path": "out/renderer/assets/index-B9_rRADc.js",
+      "url": "files/out/renderer/assets/index-B9_rRADc.js",
+      "sha256": "27565e68d6a0912737bf3d9eb222ce147d4286c451aad479faceb50fadb2e271",
+      "size": 782980
     },
     {
-      "path": "out/renderer/assets/index-B3HgBlN3.js",
-      "url": "files/out/renderer/assets/index-B3HgBlN3.js",
-      "sha256": "4a2ffd9992c7ddc598778afa528f3564c0179cd3b8b6f1cd2ae35a0844fe962b",
-      "size": 780622
+      "path": "out/renderer/assets/index-CfXBfXGj.css",
+      "url": "files/out/renderer/assets/index-CfXBfXGj.css",
+      "sha256": "df57ae0ea6bfc62dd5ee1d2e7306368629f47399ef8736a375bc5d2f38cd8f2a",
+      "size": 32473
     },
     {
       "path": "out/renderer/favicon.png",
@@ -66,7 +66,7 @@
     {
       "path": "out/renderer/index.html",
       "url": "files/out/renderer/index.html",
-      "sha256": "55e03598d7b3a01b72fbebb6104f8767de9c05b4db468eac721e98d346950d7a",
+      "sha256": "7ad7785ac3aa5f41ba1f20c3e209bad0f898687380b7d290be95926046b924a1",
       "size": 670
     },
     {

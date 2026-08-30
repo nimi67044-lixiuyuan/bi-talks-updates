@@ -16759,10 +16759,18 @@ function UpdateCheckButton({
   onDialogOpenChange
 }) {
   const [checking, setChecking] = reactExports.useState(false);
+  const [updateAvailable, setUpdateAvailable] = reactExports.useState(false);
   const [availablePatch, setAvailablePatch] = reactExports.useState();
+  const [confirmationOpen, setConfirmationOpen] = reactExports.useState(false);
   const [installing, setInstalling] = reactExports.useState(false);
   const [installMessage, setInstallMessage] = reactExports.useState("");
   const [downloadProgress, setDownloadProgress] = reactExports.useState();
+  const checkingRef = reactExports.useRef(false);
+  const lastReminderRef = reactExports.useRef(void 0);
+  const onNoticeRef = reactExports.useRef(onNotice);
+  const onDialogOpenChangeRef = reactExports.useRef(onDialogOpenChange);
+  onNoticeRef.current = onNotice;
+  onDialogOpenChangeRef.current = onDialogOpenChange;
   reactExports.useEffect(() => window.desktop.onEvent((event) => {
     if (event.type !== "app-patch" || !["downloading", "ready", "applying", "error"].includes(event.status)) return;
     setInstallMessage(event.message);
@@ -16777,33 +16785,70 @@ function UpdateCheckButton({
   }), []);
   const closeConfirmation = () => {
     if (installing) return;
+    setConfirmationOpen(false);
     setAvailablePatch(void 0);
     setInstallMessage("");
     setDownloadProgress(void 0);
     onDialogOpenChange(false);
   };
-  const check = async () => {
-    if (checking) return;
+  const check = reactExports.useCallback(async (automatic = false) => {
+    if (checkingRef.current) return;
+    checkingRef.current = true;
     setChecking(true);
     try {
       const result = await window.desktop.checkAppPatch();
       if (result.available && result.patch) {
-        onDialogOpenChange(true);
+        setUpdateAvailable(true);
         setAvailablePatch(result.patch);
         setInstallMessage("");
         setDownloadProgress(void 0);
+        const day = currentUsageDay();
+        let alreadyReminded = lastReminderRef.current?.patchId === result.patch.patchId && lastReminderRef.current.day === day;
+        if (automatic && !alreadyReminded) {
+          try {
+            const saved = JSON.parse(localStorage.getItem("bi-talks.app-patch-reminder.v1") || "null");
+            alreadyReminded = saved?.patchId === result.patch.patchId && saved.day === day;
+          } catch {
+            alreadyReminded = false;
+          }
+        }
+        if (!automatic || !alreadyReminded) {
+          lastReminderRef.current = { patchId: result.patch.patchId, day };
+          try {
+            localStorage.setItem("bi-talks.app-patch-reminder.v1", JSON.stringify(lastReminderRef.current));
+          } catch {
+          }
+          setConfirmationOpen(true);
+          onDialogOpenChangeRef.current(true);
+        }
       } else {
-        onNotice(result.message);
+        setUpdateAvailable(false);
+        setConfirmationOpen(false);
         setAvailablePatch(void 0);
-        onDialogOpenChange(false);
+        onDialogOpenChangeRef.current(false);
+        if (!automatic) onNoticeRef.current(result.message);
       }
     } catch (error) {
-      onDialogOpenChange(false);
-      onNotice(`检查在线补丁失败：${error instanceof Error ? error.message : String(error)}`);
+      if (!automatic) {
+        onDialogOpenChangeRef.current(false);
+        onNoticeRef.current(`检查在线补丁失败：${error instanceof Error ? error.message : String(error)}`);
+      }
     } finally {
+      checkingRef.current = false;
       setChecking(false);
     }
-  };
+  }, []);
+  reactExports.useEffect(() => {
+    const runAutomaticCheck = () => {
+      if (document.visibilityState === "visible") void check(true);
+    };
+    const startupTimer = window.setTimeout(runAutomaticCheck, 2e4);
+    const intervalTimer = window.setInterval(runAutomaticCheck, 6 * 60 * 60 * 1e3);
+    return () => {
+      window.clearTimeout(startupTimer);
+      window.clearInterval(intervalTimer);
+    };
+  }, [check]);
   const install = async () => {
     if (installing || !availablePatch) return;
     setInstalling(true);
@@ -16834,7 +16879,7 @@ function UpdateCheckButton({
   };
   const patchSize = availablePatch ? availablePatch.downloadSize < 1024 * 1024 ? `${Math.max(1, Math.ceil(availablePatch.downloadSize / 1024))} KB` : `${(availablePatch.downloadSize / (1024 * 1024)).toFixed(1)} MB` : "";
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "button",
       {
         className: "platform-button",
@@ -16843,15 +16888,18 @@ function UpdateCheckButton({
         "aria-label": "检查更新",
         disabled: checking,
         style: { width: 42, height: 42, borderRadius: 10, fontSize: 12, lineHeight: 1.15, opacity: checking ? 0.65 : 1 },
-        onClick: () => void check(),
-        children: /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-          "检查",
-          /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
-          "更新"
-        ] })
+        onClick: () => void check(false),
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+            "检查",
+            /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
+            "更新"
+          ] }),
+          updateAvailable && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "update-available-dot", "aria-hidden": "true" })
+        ]
       }
     ),
-    availablePatch && /* @__PURE__ */ jsxRuntimeExports.jsx(Modal, { title: "发现在线补丁", onClose: closeConfirmation, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-stack", children: [
+    availablePatch && confirmationOpen && /* @__PURE__ */ jsxRuntimeExports.jsx(Modal, { title: "发现在线补丁", onClose: closeConfirmation, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-stack", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "confirm-copy", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("strong", { children: [
           "发现新补丁 ",
@@ -17178,7 +17226,7 @@ function App() {
         if (event.accountId) setStatuses((items) => ({ ...items, [event.accountId]: message }));
       }
       if (event.type === "app-patch") {
-        if (event.status === "available" || event.status === "downloading" || event.status === "ready" || event.status === "error") {
+        if (event.status === "checking" || event.status === "available" || event.status === "downloading" || event.status === "ready" || event.status === "up-to-date" || event.status === "error") {
           setNotice(void 0);
           setNoticeProgress(void 0);
         } else {
