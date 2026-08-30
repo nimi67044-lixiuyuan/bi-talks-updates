@@ -16773,12 +16773,12 @@ function UpdateCheckButton({
     setChecking(true);
     try {
       const result = await window.desktop.checkAppPatch();
-      onNotice(result.message);
       if (result.available && result.patch) {
         onDialogOpenChange(true);
         setAvailablePatch(result.patch);
         setInstallMessage("");
       } else {
+        onNotice(result.message);
         setAvailablePatch(void 0);
         onDialogOpenChange(false);
       }
@@ -17152,8 +17152,13 @@ function App() {
         if (event.accountId) setStatuses((items) => ({ ...items, [event.accountId]: message }));
       }
       if (event.type === "app-patch") {
-        setNotice(event.message);
-        setNoticeProgress(event.status === "downloading" && typeof event.progress === "number" ? Math.min(100, Math.max(0, event.progress)) : void 0);
+        if (event.status === "available") {
+          setNotice(void 0);
+          setNoticeProgress(void 0);
+        } else {
+          setNotice(event.message);
+          setNoticeProgress(event.status === "downloading" && typeof event.progress === "number" ? Math.min(100, Math.max(0, event.progress)) : void 0);
+        }
       }
       if (event.type === "signal-translation" && event.status === "error") {
         setNotice(event.message);

@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.7-adaptive-account-card-width-20260830",
+  "patchId": "4.0.7-hide-update-available-notice-20260830",
   "baseVersions": [
     "4.0.7"
   ],
   "targetVersion": "4.0.7",
-  "publishedAt": "2026-08-30T22:24:53.585Z",
-  "description": "Size top account cards from each account label while preserving stable minimum and maximum widths",
+  "publishedAt": "2026-08-30T22:36:57.037Z",
+  "description": "Show the update confirmation dialog without a duplicate patch-available error-style notice",
   "files": [
     {
       "path": "build/icons/app.png",
@@ -46,10 +46,10 @@
       "size": 28135
     },
     {
-      "path": "out/renderer/assets/index-B9S8ZcKa.js",
-      "url": "files/out/renderer/assets/index-B9S8ZcKa.js",
-      "sha256": "6c66d5fc1031e77c66e4ce22f43befb4320c796a22ae58821b18c5b2e7353fba",
-      "size": 778993
+      "path": "out/renderer/assets/index-B8eRBbDn.js",
+      "url": "files/out/renderer/assets/index-B8eRBbDn.js",
+      "sha256": "0f9a72983fcb2c4b4ce9a968f12e32649337db4dcd8674519af50db66110437b",
+      "size": 779136
     },
     {
       "path": "out/renderer/assets/index-kznEQ2rA.css",
@@ -66,7 +66,7 @@
     {
       "path": "out/renderer/index.html",
       "url": "files/out/renderer/index.html",
-      "sha256": "f25304d4aa00021c43708eb98d80a71a2d4c804c24414aec05095f50bbec8e4e",
+      "sha256": "7a41f76b200a54ff68950f410f3768bea869ab057e16d09bbc07d3c01863bd35",
       "size": 670
     },
     {
