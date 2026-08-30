@@ -1,19 +1,49 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.6-inprocess-updater-restart-fix-20260829",
+  "patchId": "4.0.6-signal-safe-send-20260829",
   "baseVersions": [
     "4.0.6"
   ],
   "targetVersion": "4.0.6",
-  "publishedAt": "2026-08-30T00:51:50.438Z",
-  "description": "修复确认在线补丁后安装助手随主程序退出、补丁未应用且软件无法自动重启的问题；改为事务式应用、失败回滚并由 Electron 自动重启。",
+  "publishedAt": "2026-08-30T01:41:35.501Z",
+  "description": "修复 Signal 输入框在失焦后偶发自动发送：只接受明确发送意图，取消错误控件识别，并在失焦、切换或草稿变化时撤销待发送任务。",
   "files": [
+    {
+      "path": "build/icons/app.png",
+      "url": "files/build/icons/app.png",
+      "sha256": "c53d9155e07a443504e3fa05b21af68d4013e0a27ad902463c00e950ee7907a0",
+      "size": 122103
+    },
+    {
+      "path": "build/icons/icon.ico",
+      "url": "files/build/icons/icon.ico",
+      "sha256": "975628e2593551e6031a2f888d716abc5de687dce60aa623a63c5aec8cdd75b0",
+      "size": 53266
+    },
+    {
+      "path": "build/icons/icon.png",
+      "url": "files/build/icons/icon.png",
+      "sha256": "5d65d482d19004a11b0de9c681a07db71492ae07bf426eaa6c4cac5ff77404ae",
+      "size": 33592
+    },
     {
       "path": "out/main/index.js",
       "url": "files/out/main/index.js",
-      "sha256": "c4af050c9541e67372a4300e450a53a6fa963a05b5c5886865e09f2e3846fddc",
-      "size": 302634
+      "sha256": "ea8fdd4c55c86e619ed6dd97101a7bf04cea0a0ab7dbe65b726ebafd53bb97f7",
+      "size": 305485
+    },
+    {
+      "path": "out/preload/index.cjs",
+      "url": "files/out/preload/index.cjs",
+      "sha256": "4a2bca08ccd0c90410378fcea7209960a4b1770aa6d37440caa8df42e486c18e",
+      "size": 3321
+    },
+    {
+      "path": "out/preload/service.cjs",
+      "url": "files/out/preload/service.cjs",
+      "sha256": "5490f4da826c1a2709aa5a15fca6e045331dd3f93e50adccafc84b47fdf5058d",
+      "size": 28135
     },
     {
       "path": "out/renderer/assets/index-BzOTvv0n.js",
@@ -22,10 +52,28 @@
       "size": 783000
     },
     {
+      "path": "out/renderer/assets/index-jMWQudkV.css",
+      "url": "files/out/renderer/assets/index-jMWQudkV.css",
+      "sha256": "afdd6c5be5a5b6f6f98020e854e50d7ad598da08d8fab09b20f56e3a5c413de7",
+      "size": 28754
+    },
+    {
+      "path": "out/renderer/favicon.png",
+      "url": "files/out/renderer/favicon.png",
+      "sha256": "3acc57d543f36803e5d5357bb7159ea2f7c279febc4694a87fb2b40b553ca1d0",
+      "size": 1416
+    },
+    {
       "path": "out/renderer/index.html",
       "url": "files/out/renderer/index.html",
       "sha256": "541f17203b47b979c9e807a1ee47806e81fb7ba22cc9885879e6a87eff6f0ccf",
       "size": 679
+    },
+    {
+      "path": "package.json",
+      "url": "files/package.json",
+      "sha256": "542c1e159f5bf0f77966604c3278f47385d67caf007e289750d9619ce4b939db",
+      "size": 3344
     }
   ],
   "remove": []

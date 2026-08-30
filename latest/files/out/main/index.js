@@ -1521,13 +1521,16 @@ function installSignalTranslation() {
   };
   installNativeUpdateBridge();
   const installEnglishOnlySendGuard = () => {
-    if (signalWindow.__biTalksEnglishOnlySendGuard === "complete-v5") return;
-    signalWindow.__biTalksEnglishOnlySendGuard = "complete-v5";
+    if (signalWindow.__biTalksEnglishOnlySendGuardController?.version === "complete-v6") return;
+    signalWindow.__biTalksEnglishOnlySendGuardController?.destroy();
+    signalWindow.__biTalksEnglishOnlySendGuard = "complete-v6";
     const chinese = new RegExp("\\p{Script=Han}", "u");
+    const listenerController = new AbortController();
     let outgoingStatusTimer;
     const outgoingJobs = /* @__PURE__ */ new Map();
-    const outgoingSendEditors = /* @__PURE__ */ new Map();
+    const outgoingSendJobs = /* @__PURE__ */ new Map();
     const outgoingPending = /* @__PURE__ */ new WeakSet();
+    const outgoingTokens = /* @__PURE__ */ new WeakMap();
     let nativeSendEditor;
     let nativeSendUntil = 0;
     let outgoingSequence = 0;
@@ -1624,14 +1627,12 @@ function installSignalTranslation() {
       return Array.from(candidates).some((candidate) => chinese.test(editorText(candidate))) || attachmentFileNameHasChinese(editor);
     };
     const isSendControl = (element) => {
-      const control = element.closest('button,[role="button"],[data-testid],[aria-label],[title]');
+      const control = element.closest('button,[role="button"]');
       if (!control) return false;
       const marker = control.querySelector("[data-icon],[data-testid],[aria-label],[title]");
       const signature = `${element.getAttribute("data-icon") || ""} ${element.getAttribute("data-testid") || ""} ${element.getAttribute("aria-label") || ""} ${control.getAttribute("aria-label") || ""} ${control.getAttribute("title") || ""} ${control.getAttribute("data-testid") || ""} ${marker?.getAttribute("data-icon") || ""} ${marker?.getAttribute("data-testid") || ""} ${marker?.getAttribute("aria-label") || ""} ${marker?.getAttribute("title") || ""} ${control.textContent || ""}`.trim().toLowerCase();
-      if (signature.includes("发送") || /(^|[\s_-])send([\s_-]|$)/u.test(signature) || /sendbutton|send-button|sendmessage|send-message/u.test(signature)) return true;
       if (/attach|attachment|add|plus|microphone|voice|emoji|表情|附件|添加|语音/u.test(signature)) return false;
-      const rect = control.getBoundingClientRect();
-      return rect.width >= 24 && rect.width <= 88 && rect.height >= 24 && rect.height <= 88 && rect.right >= innerWidth - 28 && rect.bottom >= innerHeight - 72;
+      return signature.includes("发送") || /(^|[\s_-])send([\s_-]|$)/u.test(signature) || /sendbutton|send-button|sendmessage|send-message/u.test(signature);
     };
     const editorForSendControl = (element) => {
       const related = nearestEditor(element);
@@ -1672,55 +1673,99 @@ function installSignalTranslation() {
       }
       return closestToEditor(Array.from(document.querySelectorAll('button,[role="button"],[data-testid],[aria-label],[title]')).filter((candidate) => isSendControl(candidate)));
     };
-    const translateAndSend = (event, editor) => {
+    const normalizeText = (text) => text.replace(/\r\n?/g, "\n").trim();
+    const clearNativeSend = (editor) => {
+      if (nativeSendEditor !== editor) return;
+      nativeSendEditor = void 0;
+      nativeSendUntil = 0;
+    };
+    const cleanupOutgoingJob = (job) => {
+      outgoingJobs.delete(job.id);
+      outgoingSendJobs.delete(job.id);
+      if (outgoingTokens.get(job.editor) === job.token) {
+        outgoingTokens.delete(job.editor);
+        outgoingPending.delete(job.editor);
+      }
+      clearNativeSend(job.editor);
+    };
+    const cancelEditorJobs = (editor) => {
+      const jobs = /* @__PURE__ */ new Set();
+      outgoingJobs.forEach((job) => {
+        if (job.editor === editor) jobs.add(job);
+      });
+      outgoingSendJobs.forEach((job) => {
+        if (job.editor === editor) jobs.add(job);
+      });
+      jobs.forEach(cleanupOutgoingJob);
+    };
+    const cancelAllOutgoingJobs = () => {
+      const jobs = /* @__PURE__ */ new Set([...outgoingJobs.values(), ...outgoingSendJobs.values()]);
+      jobs.forEach(cleanupOutgoingJob);
+    };
+    const hasCurrentIntent = (job) => job.editor.isConnected && outgoingTokens.get(job.editor) === job.token;
+    const hasOriginalDraft = (job) => hasCurrentIntent(job) && normalizeText(editorText(job.editor)) === normalizeText(job.source);
+    const hasTranslatedDraft = (job) => hasCurrentIntent(job) && !!job.translated && normalizeText(editorText(job.editor)) === normalizeText(job.translated);
+    const editorHasFocus = (editor) => document.activeElement === editor || !!document.activeElement && editor.contains(document.activeElement);
+    const translateAndSend = (event, editor, intent) => {
       const source = editorText(editor).trim();
       if (!source || !chinese.test(source) || attachmentFileNameHasChinese(editor)) return false;
-      event.preventDefault();
-      event.stopImmediatePropagation();
+      suppress(event);
       if (outgoingPending.has(editor)) return true;
       const id = `outgoing-${Date.now()}-${++outgoingSequence}`;
+      const token = `${id}-${intent}`;
+      const job = { id, editor, source, token, intent, phase: "translating" };
       outgoingPending.add(editor);
-      outgoingJobs.set(id, { editor, source });
+      outgoingTokens.set(editor, token);
+      outgoingJobs.set(id, job);
       showOutgoingStatus("正在翻译中…");
       const requestTranslation = signalWindow.__biTalksTranslateOutgoingRequest;
       if (!requestTranslation) {
-        outgoingPending.delete(editor);
-        outgoingJobs.delete(id);
+        cleanupOutgoingJob(job);
         return true;
       }
       try {
         requestTranslation(JSON.stringify({ id, text: source }));
       } catch {
-        outgoingPending.delete(editor);
-        outgoingJobs.delete(id);
+        cleanupOutgoingJob(job);
       }
       return true;
     };
     signalWindow.__biTalksOutgoingTranslationResult = (id, translated) => {
       const job = outgoingJobs.get(id);
-      if (!job || !job.editor.isConnected) return false;
+      if (!job || !hasOriginalDraft(job)) {
+        if (job) cleanupOutgoingJob(job);
+        return false;
+      }
       const english = String(translated || "").trim();
       if (!english) {
-        outgoingJobs.delete(id);
-        outgoingPending.delete(job.editor);
+        cleanupOutgoingJob(job);
         showOutgoingStatus("翻译失败，消息未发送。", "error", 2600);
         return false;
       }
       outgoingJobs.delete(id);
-      outgoingSendEditors.set(id, job.editor);
+      job.translated = english;
+      job.phase = "ready";
+      outgoingSendJobs.set(id, job);
       showOutgoingStatus("翻译成功！", "success", 900);
       return true;
     };
     signalWindow.__biTalksOutgoingTranslationFailed = (id) => {
       const job = outgoingJobs.get(id);
-      outgoingJobs.delete(id);
-      if (job) outgoingPending.delete(job.editor);
+      if (job) cleanupOutgoingJob(job);
       showOutgoingStatus("翻译失败，消息未发送。", "error", 2600);
     };
     signalWindow.__biTalksOutgoingTranslationPrepareInput = (id) => {
-      const editor = outgoingSendEditors.get(id);
-      if (!editor || !editor.isConnected) return false;
+      const job = outgoingSendJobs.get(id);
+      if (!job || job.phase !== "ready" || !hasOriginalDraft(job)) {
+        if (job) cleanupOutgoingJob(job);
+        return false;
+      }
+      const { editor } = job;
       editor.focus();
+      if (!editorHasFocus(editor)) {
+        cleanupOutgoingJob(job);
+        return false;
+      }
       if (editor instanceof HTMLInputElement || editor instanceof HTMLTextAreaElement) editor.select();
       else {
         const selection = window.getSelection();
@@ -1729,12 +1774,16 @@ function installSignalTranslation() {
         selection?.removeAllRanges();
         selection?.addRange(range);
       }
-      outgoingPending.delete(editor);
+      job.phase = "inserting";
       return true;
     };
     signalWindow.__biTalksOutgoingTranslationInputCommitted = (id) => {
-      const editor = outgoingSendEditors.get(id);
-      if (!editor || !editor.isConnected) return false;
+      const job = outgoingSendJobs.get(id);
+      if (!job || job.phase !== "inserting" || !hasTranslatedDraft(job) || !editorHasFocus(job.editor)) {
+        if (job) cleanupOutgoingJob(job);
+        return false;
+      }
+      const { editor } = job;
       const text = editorText(editor);
       editor.dispatchEvent(new InputEvent("input", {
         bubbles: true,
@@ -1742,11 +1791,16 @@ function installSignalTranslation() {
         inputType: "insertText",
         data: text
       }));
+      job.phase = "inserted";
       return true;
     };
     signalWindow.__biTalksOutgoingTranslationAllowNativeSend = (id) => {
-      const editor = outgoingSendEditors.get(id);
-      if (!editor || !editor.isConnected) return false;
+      const job = outgoingSendJobs.get(id);
+      if (!job || job.phase !== "inserted" || !hasTranslatedDraft(job) || !editorHasFocus(job.editor)) {
+        if (job) cleanupOutgoingJob(job);
+        return false;
+      }
+      const { editor } = job;
       nativeSendEditor = editor;
       nativeSendUntil = Date.now() + 2200;
       setTimeout(() => {
@@ -1755,8 +1809,12 @@ function installSignalTranslation() {
       return true;
     };
     signalWindow.__biTalksOutgoingTranslationSendStart = (id) => {
-      const editor = outgoingSendEditors.get(id);
-      if (!editor || !editor.isConnected) return void 0;
+      const job = outgoingSendJobs.get(id);
+      if (!job || job.phase !== "inserted" || !hasTranslatedDraft(job) || !editorHasFocus(job.editor)) {
+        if (job) cleanupOutgoingJob(job);
+        return void 0;
+      }
+      const { editor } = job;
       const control = sendControlForEditor(editor);
       if (!control) return void 0;
       const rect = control.getBoundingClientRect();
@@ -1768,24 +1826,23 @@ function installSignalTranslation() {
       return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
     };
     signalWindow.__biTalksOutgoingTranslationDidSend = (id) => {
-      const editor = outgoingSendEditors.get(id);
-      return !editor || !editor.isConnected || !editorText(editor).trim();
+      const job = outgoingSendJobs.get(id);
+      return !!job && (!job.editor.isConnected || !editorText(job.editor).trim());
     };
     signalWindow.__biTalksOutgoingTranslationSent = (id, sent) => {
-      outgoingSendEditors.delete(id);
-      nativeSendEditor = void 0;
-      nativeSendUntil = 0;
+      const job = outgoingSendJobs.get(id);
+      if (job) cleanupOutgoingJob(job);
       showOutgoingStatus(sent ? "发送成功！" : "请再次按下回车键！", sent ? "success" : "error", sent ? 1800 : 3e3);
     };
     document.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" || event.shiftKey || event.isComposing || event.keyCode === 229) return;
+      if (!event.isTrusted || event.repeat || event.key !== "Enter" || event.shiftKey || event.isComposing || event.keyCode === 229) return;
       const element = origin(event);
       const editor = element ? nearestEditor(element) : void 0;
       if (!editor) return;
       if (nativeSendAllowed(editor)) return;
       if (outgoingPending.has(editor)) suppress(event);
-      else if (shouldBlock(editor) && !translateAndSend(event, editor)) block(event);
-    }, true);
+      else if (shouldBlock(editor) && !translateAndSend(event, editor, "keyboard")) block(event);
+    }, { capture: true, signal: listenerController.signal });
     document.addEventListener("keypress", (event) => {
       if (event.key !== "Enter" || event.shiftKey || event.isComposing || event.keyCode === 229) return;
       const element = origin(event);
@@ -1794,7 +1851,7 @@ function installSignalTranslation() {
       if (nativeSendAllowed(editor)) return;
       if (outgoingPending.has(editor)) suppress(event);
       else if (shouldBlock(editor)) block(event);
-    }, true);
+    }, { capture: true, signal: listenerController.signal });
     document.addEventListener("keyup", (event) => {
       if (event.key !== "Enter" || event.shiftKey || event.isComposing || event.keyCode === 229) return;
       const element = origin(event);
@@ -1803,53 +1860,59 @@ function installSignalTranslation() {
       if (nativeSendAllowed(editor)) return;
       if (outgoingPending.has(editor)) suppress(event);
       else if (shouldBlock(editor)) block(event);
-    }, true);
+    }, { capture: true, signal: listenerController.signal });
     document.addEventListener("click", (event) => {
+      if (!event.isTrusted) return;
       const element = origin(event);
       const editor = element ? editorForSendControl(element) : void 0;
       if (!element || !editor || nativeSendAllowed(editor) || !isSendControl(element)) return;
       if (outgoingPending.has(editor)) suppress(event);
-      else if (shouldBlock(editor) && !translateAndSend(event, editor)) block(event);
-    }, true);
+      else if (shouldBlock(editor) && !translateAndSend(event, editor, "button")) block(event);
+    }, { capture: true, signal: listenerController.signal });
     document.addEventListener("pointerdown", (event) => {
       const element = origin(event);
-      const editor = element ? editorForSendControl(element) : void 0;
-      if (!element || !editor || nativeSendAllowed(editor) || !isSendControl(element)) return;
-      if (outgoingPending.has(editor)) suppress(event);
-      else if (shouldBlock(editor) && !translateAndSend(event, editor)) block(event);
-    }, true);
-    document.addEventListener("mousedown", (event) => {
+      if (!element || isSendControl(element)) return;
+      cancelAllOutgoingJobs();
+    }, { capture: true, signal: listenerController.signal });
+    document.addEventListener("focusout", (event) => {
       const element = origin(event);
-      const editor = element ? editorForSendControl(element) : void 0;
-      if (!element || !editor || nativeSendAllowed(editor) || !isSendControl(element)) return;
-      if (outgoingPending.has(editor)) suppress(event);
-      else if (shouldBlock(editor) && !translateAndSend(event, editor)) block(event);
-    }, true);
-    document.addEventListener("pointerup", (event) => {
-      const element = origin(event);
-      const editor = element ? editorForSendControl(element) : void 0;
-      if (!element || !editor || nativeSendAllowed(editor) || !isSendControl(element)) return;
-      if (outgoingPending.has(editor)) suppress(event);
-      else if (shouldBlock(editor) && !translateAndSend(event, editor)) block(event);
-    }, true);
+      const editor = element ? editorFrom(element) : void 0;
+      if (editor && outgoingPending.has(editor) && !nativeSendAllowed(editor)) cancelEditorJobs(editor);
+    }, { capture: true, signal: listenerController.signal });
+    window.addEventListener("blur", cancelAllOutgoingJobs, { signal: listenerController.signal });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState !== "visible") cancelAllOutgoingJobs();
+    }, { signal: listenerController.signal });
     document.addEventListener("submit", (event) => {
       const element = origin(event);
       const editor = element ? nearestEditor(element) : void 0;
       if (editor && !nativeSendAllowed(editor) && shouldBlock(editor)) block(event);
-    }, true);
+    }, { capture: true, signal: listenerController.signal });
     document.addEventListener("change", (event) => {
       const element = origin(event);
       if (!(element instanceof HTMLInputElement) || element.type !== "file" || !fileNames(element.files).some((name) => chinese.test(name))) return;
       block(event);
       element.value = "";
       element.dispatchEvent(new Event("change", { bubbles: true }));
-    }, true);
+    }, { capture: true, signal: listenerController.signal });
     document.addEventListener("drop", (event) => {
       if (fileNames(event.dataTransfer?.files).some((name) => chinese.test(name))) block(event);
-    }, true);
+    }, { capture: true, signal: listenerController.signal });
     document.addEventListener("paste", (event) => {
       if (fileNames(event.clipboardData?.files).some((name) => chinese.test(name))) block(event);
-    }, true);
+    }, { capture: true, signal: listenerController.signal });
+    signalWindow.__biTalksEnglishOnlySendGuardController = {
+      version: "complete-v6",
+      destroy: () => {
+        listenerController.abort();
+        cancelAllOutgoingJobs();
+        if (outgoingStatusTimer) clearTimeout(outgoingStatusTimer);
+        document.getElementById("bi-talks-outgoing-translation-status")?.remove();
+        if (signalWindow.__biTalksEnglishOnlySendGuardController?.version === "complete-v6") {
+          delete signalWindow.__biTalksEnglishOnlySendGuardController;
+        }
+      }
+    };
   };
   installEnglishOnlySendGuard();
   const installUnreadMonitor = () => {
