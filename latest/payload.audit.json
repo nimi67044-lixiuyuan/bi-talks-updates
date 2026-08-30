@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.6-update-overlay-restart-fix-20260829",
+  "patchId": "4.0.6-update-overlay-restart-fix2-20260829",
   "baseVersions": [
     "4.0.6"
   ],
   "targetVersion": "4.0.6",
-  "publishedAt": "2026-08-29T23:59:33.581Z",
+  "publishedAt": "2026-08-30T00:08:21.164Z",
   "description": "修复在线补丁确认弹窗被工作区遮挡，以及确认更新后补丁未应用、软件未自动重启的问题。",
   "files": [
     {
@@ -26,15 +26,7 @@
       "url": "files/out/renderer/index.html",
       "sha256": "541f17203b47b979c9e807a1ee47806e81fb7ba22cc9885879e6a87eff6f0ccf",
       "size": 679
-    },
-    {
-      "path": "package.json",
-      "url": "files/package.json",
-      "sha256": "542c1e159f5bf0f77966604c3278f47385d67caf007e289750d9619ce4b939db",
-      "size": 3344
     }
   ],
-  "remove": [
-    "out/renderer/assets/index-DXjyMHCs.js"
-  ]
+  "remove": []
 }
