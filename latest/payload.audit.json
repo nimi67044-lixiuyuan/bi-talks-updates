@@ -1,77 +1,77 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.7-cache-safe-patch-assets-20260830",
+  "patchId": "4.0.7-compact-account-bar-20260830",
   "baseVersions": [
     "4.0.7"
   ],
   "targetVersion": "4.0.7",
-  "publishedAt": "2026-08-30T23:44:27.592Z",
-  "description": "Use immutable patch-specific asset URLs to prevent GitHub CDN cache mismatches during online updates",
+  "publishedAt": "2026-08-31T00:08:50.895Z",
+  "description": "Hide generic account ready labels and reduce the top account bar to 50px with 45px account cards",
   "files": [
     {
       "path": "build/icons/app.png",
-      "url": "files/4.0.7-cache-safe-patch-assets-20260830/build/icons/app.png",
+      "url": "files/4.0.7-compact-account-bar-20260830/build/icons/app.png",
       "sha256": "c53d9155e07a443504e3fa05b21af68d4013e0a27ad902463c00e950ee7907a0",
       "size": 122103
     },
     {
       "path": "build/icons/icon.ico",
-      "url": "files/4.0.7-cache-safe-patch-assets-20260830/build/icons/icon.ico",
+      "url": "files/4.0.7-compact-account-bar-20260830/build/icons/icon.ico",
       "sha256": "975628e2593551e6031a2f888d716abc5de687dce60aa623a63c5aec8cdd75b0",
       "size": 53266
     },
     {
       "path": "build/icons/icon.png",
-      "url": "files/4.0.7-cache-safe-patch-assets-20260830/build/icons/icon.png",
+      "url": "files/4.0.7-compact-account-bar-20260830/build/icons/icon.png",
       "sha256": "5d65d482d19004a11b0de9c681a07db71492ae07bf426eaa6c4cac5ff77404ae",
       "size": 33592
     },
     {
       "path": "out/main/index.js",
-      "url": "files/4.0.7-cache-safe-patch-assets-20260830/out/main/index.js",
+      "url": "files/4.0.7-compact-account-bar-20260830/out/main/index.js",
       "sha256": "aa6574a072378148618f39fcfe10f76c7fc8abe057ab1ccecc744471e7f2f37c",
       "size": 308315
     },
     {
       "path": "out/preload/index.cjs",
-      "url": "files/4.0.7-cache-safe-patch-assets-20260830/out/preload/index.cjs",
+      "url": "files/4.0.7-compact-account-bar-20260830/out/preload/index.cjs",
       "sha256": "352299e391677891d5815aae1224013403a67f8ffa8b31d68df5e5251ed9568e",
       "size": 3317
     },
     {
       "path": "out/preload/service.cjs",
-      "url": "files/4.0.7-cache-safe-patch-assets-20260830/out/preload/service.cjs",
+      "url": "files/4.0.7-compact-account-bar-20260830/out/preload/service.cjs",
       "sha256": "5490f4da826c1a2709aa5a15fca6e045331dd3f93e50adccafc84b47fdf5058d",
       "size": 28135
     },
     {
-      "path": "out/renderer/assets/index-B9_rRADc.js",
-      "url": "files/4.0.7-cache-safe-patch-assets-20260830/out/renderer/assets/index-B9_rRADc.js",
-      "sha256": "27565e68d6a0912737bf3d9eb222ce147d4286c451aad479faceb50fadb2e271",
-      "size": 782980
+      "path": "out/renderer/assets/index-BN84a7-R.css",
+      "url": "files/4.0.7-compact-account-bar-20260830/out/renderer/assets/index-BN84a7-R.css",
+      "sha256": "cc896df9ea5ab4e35c5e884513d733efd141f2b744be6fa5b421b45f5881e2a9",
+      "size": 32536
     },
     {
-      "path": "out/renderer/assets/index-CfXBfXGj.css",
-      "url": "files/4.0.7-cache-safe-patch-assets-20260830/out/renderer/assets/index-CfXBfXGj.css",
-      "sha256": "df57ae0ea6bfc62dd5ee1d2e7306368629f47399ef8736a375bc5d2f38cd8f2a",
-      "size": 32473
+      "path": "out/renderer/assets/index-CpHeNq9Q.js",
+      "url": "files/4.0.7-compact-account-bar-20260830/out/renderer/assets/index-CpHeNq9Q.js",
+      "sha256": "ad43168024166a7a309ae05acbd6a32acfbb5aba426e09335373e6f4c38a74d6",
+      "size": 783240
     },
     {
       "path": "out/renderer/favicon.png",
-      "url": "files/4.0.7-cache-safe-patch-assets-20260830/out/renderer/favicon.png",
+      "url": "files/4.0.7-compact-account-bar-20260830/out/renderer/favicon.png",
       "sha256": "3acc57d543f36803e5d5357bb7159ea2f7c279febc4694a87fb2b40b553ca1d0",
       "size": 1416
     },
     {
       "path": "out/renderer/index.html",
-      "url": "files/4.0.7-cache-safe-patch-assets-20260830/out/renderer/index.html",
-      "sha256": "7ad7785ac3aa5f41ba1f20c3e209bad0f898687380b7d290be95926046b924a1",
+      "url": "files/4.0.7-compact-account-bar-20260830/out/renderer/index.html",
+      "sha256": "887a34ee906ce9e3c3c46043b1643599847f49b1a560955e0afe2042588c93d8",
       "size": 670
     },
     {
       "path": "package.json",
-      "url": "files/4.0.7-cache-safe-patch-assets-20260830/package.json",
+      "url": "files/4.0.7-compact-account-bar-20260830/package.json",
       "sha256": "4198c75953dfda02762aff821ca6aa1b87e27f6265dc46b8bed4f75ac6b4c8eb",
       "size": 3379
     }
