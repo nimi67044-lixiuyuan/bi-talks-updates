@@ -1,77 +1,77 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.7-attached-account-cards-20260830",
+  "patchId": "4.0.7-hide-patch-restart-notice-20260830",
   "baseVersions": [
     "4.0.7"
   ],
   "targetVersion": "4.0.7",
-  "publishedAt": "2026-08-31T00:33:29.970Z",
-  "description": "Remove spacing between adjacent top account cards while preserving the compact account bar layout",
+  "publishedAt": "2026-08-31T00:41:15.720Z",
+  "description": "Hide the duplicate external patch restart notice while retaining progress inside the update dialog",
   "files": [
     {
       "path": "build/icons/app.png",
-      "url": "files/4.0.7-attached-account-cards-20260830/build/icons/app.png",
+      "url": "files/4.0.7-hide-patch-restart-notice-20260830/build/icons/app.png",
       "sha256": "c53d9155e07a443504e3fa05b21af68d4013e0a27ad902463c00e950ee7907a0",
       "size": 122103
     },
     {
       "path": "build/icons/icon.ico",
-      "url": "files/4.0.7-attached-account-cards-20260830/build/icons/icon.ico",
+      "url": "files/4.0.7-hide-patch-restart-notice-20260830/build/icons/icon.ico",
       "sha256": "975628e2593551e6031a2f888d716abc5de687dce60aa623a63c5aec8cdd75b0",
       "size": 53266
     },
     {
       "path": "build/icons/icon.png",
-      "url": "files/4.0.7-attached-account-cards-20260830/build/icons/icon.png",
+      "url": "files/4.0.7-hide-patch-restart-notice-20260830/build/icons/icon.png",
       "sha256": "5d65d482d19004a11b0de9c681a07db71492ae07bf426eaa6c4cac5ff77404ae",
       "size": 33592
     },
     {
       "path": "out/main/index.js",
-      "url": "files/4.0.7-attached-account-cards-20260830/out/main/index.js",
+      "url": "files/4.0.7-hide-patch-restart-notice-20260830/out/main/index.js",
       "sha256": "aa6574a072378148618f39fcfe10f76c7fc8abe057ab1ccecc744471e7f2f37c",
       "size": 308315
     },
     {
       "path": "out/preload/index.cjs",
-      "url": "files/4.0.7-attached-account-cards-20260830/out/preload/index.cjs",
+      "url": "files/4.0.7-hide-patch-restart-notice-20260830/out/preload/index.cjs",
       "sha256": "352299e391677891d5815aae1224013403a67f8ffa8b31d68df5e5251ed9568e",
       "size": 3317
     },
     {
       "path": "out/preload/service.cjs",
-      "url": "files/4.0.7-attached-account-cards-20260830/out/preload/service.cjs",
+      "url": "files/4.0.7-hide-patch-restart-notice-20260830/out/preload/service.cjs",
       "sha256": "5490f4da826c1a2709aa5a15fca6e045331dd3f93e50adccafc84b47fdf5058d",
       "size": 28135
     },
     {
-      "path": "out/renderer/assets/index-DCQwpjRy.js",
-      "url": "files/4.0.7-attached-account-cards-20260830/out/renderer/assets/index-DCQwpjRy.js",
-      "sha256": "ad43168024166a7a309ae05acbd6a32acfbb5aba426e09335373e6f4c38a74d6",
-      "size": 783240
-    },
-    {
       "path": "out/renderer/assets/index-LasQS0Mg.css",
-      "url": "files/4.0.7-attached-account-cards-20260830/out/renderer/assets/index-LasQS0Mg.css",
+      "url": "files/4.0.7-hide-patch-restart-notice-20260830/out/renderer/assets/index-LasQS0Mg.css",
       "sha256": "a67e6b65fc6ad2fd508bcd69edef434cfd4b59812ea7440e5b8b1dce21390eaa",
       "size": 32534
     },
     {
+      "path": "out/renderer/assets/index-OZHdQKbg.js",
+      "url": "files/4.0.7-hide-patch-restart-notice-20260830/out/renderer/assets/index-OZHdQKbg.js",
+      "sha256": "38a0af238791ad2ed675d48e5a2d0bca05f8586900c17e21bb4ddbcd7577523e",
+      "size": 783271
+    },
+    {
       "path": "out/renderer/favicon.png",
-      "url": "files/4.0.7-attached-account-cards-20260830/out/renderer/favicon.png",
+      "url": "files/4.0.7-hide-patch-restart-notice-20260830/out/renderer/favicon.png",
       "sha256": "3acc57d543f36803e5d5357bb7159ea2f7c279febc4694a87fb2b40b553ca1d0",
       "size": 1416
     },
     {
       "path": "out/renderer/index.html",
-      "url": "files/4.0.7-attached-account-cards-20260830/out/renderer/index.html",
-      "sha256": "442b79ecc3c0062126c64cdac320f5c3aa03e1eda85af4b1deb81d22b91e0517",
+      "url": "files/4.0.7-hide-patch-restart-notice-20260830/out/renderer/index.html",
+      "sha256": "f67d022d9b0303a5e1d54aa67c978ffa6d91f1cb49a0e7baeef70f60188668bf",
       "size": 670
     },
     {
       "path": "package.json",
-      "url": "files/4.0.7-attached-account-cards-20260830/package.json",
+      "url": "files/4.0.7-hide-patch-restart-notice-20260830/package.json",
       "sha256": "4198c75953dfda02762aff821ca6aa1b87e27f6265dc46b8bed4f75ac6b4c8eb",
       "size": 3379
     }
