@@ -1,48 +1,48 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.8-signal-first-install-auto-restart-20260901",
+  "patchId": "4.0.8-light-theme-workspace-sync-20260901",
   "baseVersions": [
     "4.0.7",
     "4.0.8"
   ],
   "targetVersion": "4.0.8",
-  "publishedAt": "2026-09-01T19:04:52.531Z",
-  "description": "Reliably resume the embedded Signal account after its first verified runtime download and installation, with a preserved launch task, pending-restart recovery marker and bounded startup retries",
+  "publishedAt": "2026-09-01T19:19:37.756Z",
+  "description": "Synchronize Light, Dark, and System appearance across the Bi-Talks shell, native window background, and embedded web workspaces while preserving readable opaque surfaces.",
   "files": [
     {
       "path": "out/main/index.js",
-      "url": "files/4.0.8-signal-first-install-auto-restart-20260901/out/main/index.js",
-      "sha256": "d0a90c4e65d35211df3a95c0fc99ef026926f40becc207535e1b13a5ee355d7b",
-      "size": 331429
+      "url": "files/4.0.8-light-theme-workspace-sync-20260901/out/main/index.js",
+      "sha256": "d20cbd70a876a77622323371ae70123b2049763a3499c71fcbe1409d51cfe763",
+      "size": 333744
     },
     {
       "path": "out/preload/index.cjs",
-      "url": "files/4.0.8-signal-first-install-auto-restart-20260901/out/preload/index.cjs",
-      "sha256": "352299e391677891d5815aae1224013403a67f8ffa8b31d68df5e5251ed9568e",
-      "size": 3317
+      "url": "files/4.0.8-light-theme-workspace-sync-20260901/out/preload/index.cjs",
+      "sha256": "2ed64610b5bc3aff2197800b8fdf4cee79bc0b397ded4062505b5962925b96f6",
+      "size": 3408
     },
     {
-      "path": "out/renderer/assets/index-BZb7PsCL.js",
-      "url": "files/4.0.8-signal-first-install-auto-restart-20260901/out/renderer/assets/index-BZb7PsCL.js",
-      "sha256": "dedab9fa2cc8443ea5333d31e068a7df4c94bd2a61307485a204651e36e2eb5a",
-      "size": 789777
+      "path": "out/renderer/assets/index-COuJRPKJ.css",
+      "url": "files/4.0.8-light-theme-workspace-sync-20260901/out/renderer/assets/index-COuJRPKJ.css",
+      "sha256": "f81684ccc5b6e0741465f9370639c6512f8cebca6a7ddd9cdf7a0bacc0f8d0ca",
+      "size": 34817
     },
     {
-      "path": "out/renderer/assets/index-ZWg7o3KN.css",
-      "url": "files/4.0.8-signal-first-install-auto-restart-20260901/out/renderer/assets/index-ZWg7o3KN.css",
-      "sha256": "0cf05b7e0e0608962567a8afd0e0de777c337e0259427ab43226e15995a860ea",
-      "size": 33400
+      "path": "out/renderer/assets/index-dOIqdF2P.js",
+      "url": "files/4.0.8-light-theme-workspace-sync-20260901/out/renderer/assets/index-dOIqdF2P.js",
+      "sha256": "fe9e89ea8eab7afcd0fa73a9c7a271777bb1c25c2eddecc75edf8e7e973956e2",
+      "size": 789768
     },
     {
       "path": "out/renderer/index.html",
-      "url": "files/4.0.8-signal-first-install-auto-restart-20260901/out/renderer/index.html",
-      "sha256": "2c5b5afaad32815b8c8fcf7d56f31c95bf2c242478963257725499dd334f37f2",
+      "url": "files/4.0.8-light-theme-workspace-sync-20260901/out/renderer/index.html",
+      "sha256": "23edac77bb9ecc767f6cb18de8100e0b2fdf08637bd4fdce4b820021f0ad9b57",
       "size": 670
     },
     {
       "path": "package.json",
-      "url": "files/4.0.8-signal-first-install-auto-restart-20260901/package.json",
+      "url": "files/4.0.8-light-theme-workspace-sync-20260901/package.json",
       "sha256": "7206695cd302a2badc080293b247bc72e7c5263b45bd08b886a377b12d5c404d",
       "size": 3409
     }
