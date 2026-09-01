@@ -1,80 +1,80 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.8-whatsapp-database-auto-recovery-20260831",
+  "patchId": "4.0.8-groq-multi-key-pool-20260901",
   "baseVersions": [
     "4.0.7",
     "4.0.8"
   ],
   "targetVersion": "4.0.8",
-  "publishedAt": "2026-08-31T16:56:54.645Z",
-  "description": "Automatically recover a WhatsApp account from the database error page with an isolated staged watchdog, cache rebuild, view recreation and account-only storage reset",
+  "publishedAt": "2026-09-01T18:31:16.974Z",
+  "description": "Add an encrypted Groq multi-key pool with project-aware routing, same-project primary/backup failover, rate-limit backoff, per-project concurrency controls and per-key token usage",
   "files": [
     {
       "path": "build/icons/app.png",
-      "url": "files/4.0.8-whatsapp-database-auto-recovery-20260831/build/icons/app.png",
+      "url": "files/4.0.8-groq-multi-key-pool-20260901/build/icons/app.png",
       "sha256": "c53d9155e07a443504e3fa05b21af68d4013e0a27ad902463c00e950ee7907a0",
       "size": 122103
     },
     {
       "path": "build/icons/icon.ico",
-      "url": "files/4.0.8-whatsapp-database-auto-recovery-20260831/build/icons/icon.ico",
+      "url": "files/4.0.8-groq-multi-key-pool-20260901/build/icons/icon.ico",
       "sha256": "975628e2593551e6031a2f888d716abc5de687dce60aa623a63c5aec8cdd75b0",
       "size": 53266
     },
     {
       "path": "build/icons/icon.png",
-      "url": "files/4.0.8-whatsapp-database-auto-recovery-20260831/build/icons/icon.png",
+      "url": "files/4.0.8-groq-multi-key-pool-20260901/build/icons/icon.png",
       "sha256": "5d65d482d19004a11b0de9c681a07db71492ae07bf426eaa6c4cac5ff77404ae",
       "size": 33592
     },
     {
       "path": "out/main/index.js",
-      "url": "files/4.0.8-whatsapp-database-auto-recovery-20260831/out/main/index.js",
-      "sha256": "a36a3bbfd0c5b9f1a1594ae8e1627c75a4cecd195859947ad401b6d42de7603e",
-      "size": 311819
+      "url": "files/4.0.8-groq-multi-key-pool-20260901/out/main/index.js",
+      "sha256": "c00888064e4aaa3668bf27c62c7f0343b8d45737d1829a1aadbf055d5708e94d",
+      "size": 322163
     },
     {
       "path": "out/preload/index.cjs",
-      "url": "files/4.0.8-whatsapp-database-auto-recovery-20260831/out/preload/index.cjs",
+      "url": "files/4.0.8-groq-multi-key-pool-20260901/out/preload/index.cjs",
       "sha256": "352299e391677891d5815aae1224013403a67f8ffa8b31d68df5e5251ed9568e",
       "size": 3317
     },
     {
       "path": "out/preload/service.cjs",
-      "url": "files/4.0.8-whatsapp-database-auto-recovery-20260831/out/preload/service.cjs",
+      "url": "files/4.0.8-groq-multi-key-pool-20260901/out/preload/service.cjs",
       "sha256": "5490f4da826c1a2709aa5a15fca6e045331dd3f93e50adccafc84b47fdf5058d",
       "size": 28135
     },
     {
-      "path": "out/renderer/assets/index-CgKwOZSN.js",
-      "url": "files/4.0.8-whatsapp-database-auto-recovery-20260831/out/renderer/assets/index-CgKwOZSN.js",
-      "sha256": "827c23268e190232b26bd39b57bdcb7aca6f1d076fe0c5aba6b2cca641f6d243",
-      "size": 783213
+      "path": "out/renderer/assets/index-BZb7PsCL.js",
+      "url": "files/4.0.8-groq-multi-key-pool-20260901/out/renderer/assets/index-BZb7PsCL.js",
+      "sha256": "dedab9fa2cc8443ea5333d31e068a7df4c94bd2a61307485a204651e36e2eb5a",
+      "size": 789777
     },
     {
-      "path": "out/renderer/assets/index-LasQS0Mg.css",
-      "url": "files/4.0.8-whatsapp-database-auto-recovery-20260831/out/renderer/assets/index-LasQS0Mg.css",
-      "sha256": "a67e6b65fc6ad2fd508bcd69edef434cfd4b59812ea7440e5b8b1dce21390eaa",
-      "size": 32534
+      "path": "out/renderer/assets/index-ZWg7o3KN.css",
+      "url": "files/4.0.8-groq-multi-key-pool-20260901/out/renderer/assets/index-ZWg7o3KN.css",
+      "sha256": "0cf05b7e0e0608962567a8afd0e0de777c337e0259427ab43226e15995a860ea",
+      "size": 33400
     },
     {
       "path": "out/renderer/favicon.png",
-      "url": "files/4.0.8-whatsapp-database-auto-recovery-20260831/out/renderer/favicon.png",
+      "url": "files/4.0.8-groq-multi-key-pool-20260901/out/renderer/favicon.png",
       "sha256": "3acc57d543f36803e5d5357bb7159ea2f7c279febc4694a87fb2b40b553ca1d0",
       "size": 1416
     },
     {
       "path": "out/renderer/index.html",
-      "url": "files/4.0.8-whatsapp-database-auto-recovery-20260831/out/renderer/index.html",
-      "sha256": "b97a44278adace296e3f6307818a483864e21b8b8034cdfe66720887e0e9e47a",
+      "url": "files/4.0.8-groq-multi-key-pool-20260901/out/renderer/index.html",
+      "sha256": "2c5b5afaad32815b8c8fcf7d56f31c95bf2c242478963257725499dd334f37f2",
       "size": 670
     },
     {
       "path": "package.json",
-      "url": "files/4.0.8-whatsapp-database-auto-recovery-20260831/package.json",
-      "sha256": "899f6f676034de232be0ac42a7d43f3e302800707d0974cd55827932a904f0d9",
-      "size": 3379
+      "url": "files/4.0.8-groq-multi-key-pool-20260901/package.json",
+      "sha256": "7206695cd302a2badc080293b247bc72e7c5263b45bd08b886a377b12d5c404d",
+      "size": 3409
     }
   ],
   "remove": []
