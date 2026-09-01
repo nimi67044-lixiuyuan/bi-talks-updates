@@ -1,48 +1,48 @@
 {
   "schemaVersion": 1,
   "minimumUpdaterVersion": 1,
-  "patchId": "4.0.8-groq-final-translation-only-20260901",
+  "patchId": "4.0.8-signal-first-install-auto-restart-20260901",
   "baseVersions": [
     "4.0.7",
     "4.0.8"
   ],
   "targetVersion": "4.0.8",
-  "publishedAt": "2026-09-01T18:51:28.061Z",
-  "description": "Keep Groq Qwen translations final-answer-only by disabling and hiding reasoning, limiting completion length and filtering accidental think blocks",
+  "publishedAt": "2026-09-01T19:04:52.531Z",
+  "description": "Reliably resume the embedded Signal account after its first verified runtime download and installation, with a preserved launch task, pending-restart recovery marker and bounded startup retries",
   "files": [
     {
       "path": "out/main/index.js",
-      "url": "files/4.0.8-groq-final-translation-only-20260901/out/main/index.js",
-      "sha256": "52290f7e6d029d1fec8a37134e48c277053b4cd147359fd05ecbc7d2c9eee6c8",
-      "size": 322959
+      "url": "files/4.0.8-signal-first-install-auto-restart-20260901/out/main/index.js",
+      "sha256": "d0a90c4e65d35211df3a95c0fc99ef026926f40becc207535e1b13a5ee355d7b",
+      "size": 331429
     },
     {
       "path": "out/preload/index.cjs",
-      "url": "files/4.0.8-groq-final-translation-only-20260901/out/preload/index.cjs",
+      "url": "files/4.0.8-signal-first-install-auto-restart-20260901/out/preload/index.cjs",
       "sha256": "352299e391677891d5815aae1224013403a67f8ffa8b31d68df5e5251ed9568e",
       "size": 3317
     },
     {
       "path": "out/renderer/assets/index-BZb7PsCL.js",
-      "url": "files/4.0.8-groq-final-translation-only-20260901/out/renderer/assets/index-BZb7PsCL.js",
+      "url": "files/4.0.8-signal-first-install-auto-restart-20260901/out/renderer/assets/index-BZb7PsCL.js",
       "sha256": "dedab9fa2cc8443ea5333d31e068a7df4c94bd2a61307485a204651e36e2eb5a",
       "size": 789777
     },
     {
       "path": "out/renderer/assets/index-ZWg7o3KN.css",
-      "url": "files/4.0.8-groq-final-translation-only-20260901/out/renderer/assets/index-ZWg7o3KN.css",
+      "url": "files/4.0.8-signal-first-install-auto-restart-20260901/out/renderer/assets/index-ZWg7o3KN.css",
       "sha256": "0cf05b7e0e0608962567a8afd0e0de777c337e0259427ab43226e15995a860ea",
       "size": 33400
     },
     {
       "path": "out/renderer/index.html",
-      "url": "files/4.0.8-groq-final-translation-only-20260901/out/renderer/index.html",
+      "url": "files/4.0.8-signal-first-install-auto-restart-20260901/out/renderer/index.html",
       "sha256": "2c5b5afaad32815b8c8fcf7d56f31c95bf2c242478963257725499dd334f37f2",
       "size": 670
     },
     {
       "path": "package.json",
-      "url": "files/4.0.8-groq-final-translation-only-20260901/package.json",
+      "url": "files/4.0.8-signal-first-install-auto-restart-20260901/package.json",
       "sha256": "7206695cd302a2badc080293b247bc72e7c5263b45bd08b886a377b12d5c404d",
       "size": 3409
     }
